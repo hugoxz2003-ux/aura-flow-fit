@@ -101,9 +101,17 @@
     <div class="main-content">
         <!-- Header -->
         <header class="header">
-            <div class="header-left">
-                <h2 class="page-title">Dashboard</h2>
-                <p class="page-subtitle">Bienvenido de vuelta, Admin</p>
+            <div class="header-left flex items-center gap-md">
+                <button id="mobile-menu-toggle" class="btn btn-secondary btn-sm md-hidden" style="padding: 8px;">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <div>
+                    <h2 class="page-title">Dashboard</h2>
+                    <p class="page-subtitle">Bienvenido de vuelta, Admin</p>
+                </div>
             </div>
 
             <div class="header-right">
@@ -314,6 +322,17 @@
                         <p>Requiere seguimiento urgente</p>
                     </div>
                     <button class="btn btn-secondary btn-sm">Ver</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Bookings Section (NEW) -->
+        <div class="recent-bookings-section mb-2xl">
+            <h3 class="section-title">Nuevas Reservas (Últimas 24h)</h3>
+            <div class="glass-card p-0 overflow-hidden">
+                <div class="bookings-list" id="recent-bookings-list">
+                    <!-- Loaded dynamically -->
+                    <p class="p-lg text-muted text-center">Cargando reservas recientes...</p>
                 </div>
             </div>
         </div>

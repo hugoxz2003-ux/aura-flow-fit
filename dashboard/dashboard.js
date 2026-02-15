@@ -18,7 +18,7 @@ async function fetchDashboardData() {
         if (error) throw error;
         dashboardData.members = members;
 
-        // Also fetch classes
+        // Fetch classes
         const { data: classes, error: errorClasses } = await supabase
             .from('clases')
             .select('*');
@@ -30,19 +30,57 @@ async function fetchDashboardData() {
         const { data: leads } = await supabase.from('leads').select('*');
         if (leads) dashboardData.leads = leads;
 
+        // Fetch ALL Bookings
+        const { data: bookings } = await supabase
+            .from('reservas')
+            .select('*, socio:socios(*), clase:clases(*)')
+            .order('created_at', { ascending: false });
+
+        if (bookings) dashboardData.bookings = bookings;
+
         console.log('Real data fetched from Supabase:', dashboardData);
 
-        // Refresh active section if it's currently showing members or classes
+        // Refresh active section
         const activeSection = document.querySelector('.nav-item.active');
         if (activeSection) {
             const sectionTarget = activeSection.getAttribute('href').substring(1);
-            if (['dashboard', 'members', 'calendar'].includes(sectionTarget)) {
-                showSection(sectionTarget);
-            }
+            showSection(sectionTarget);
         }
+
+        // Always render recent bookings if on dashboard view
+        renderRecentBookings();
     } catch (err) {
         console.error('Error fetching data from Supabase:', err);
     }
+}
+
+function renderRecentBookings() {
+    const list = document.getElementById('recent-bookings-list');
+    if (!list || !dashboardData.bookings) return;
+
+    if (dashboardData.bookings.length === 0) {
+        list.innerHTML = '<p class="p-lg text-muted text-center">No hay reservas registradas aún.</p>';
+        return;
+    }
+
+    // Take last 5
+    const recent = dashboardData.bookings.slice(0, 5);
+
+    list.innerHTML = recent.map(b => `
+        <div class="booking-item">
+            <div class="booking-info">
+                <div class="booking-avatar">${b.socio.nombre.charAt(0)}</div>
+                <div class="booking-details">
+                    <h4>${b.socio.nombre}</h4>
+                    <p>${b.clase.nombre} • ${b.clase.horario.substring(0, 5)}</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="plan-badge plan-${b.socio.plan.toLowerCase().replace(' ', '-')}">${b.socio.plan}</span>
+                <span class="text-xs text-muted mt-xs">${new Date(b.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 // Keep DUMMY for modules not yet connected
@@ -68,11 +106,15 @@ document.addEventListener('DOMContentLoaded', function () {
     showSection('dashboard');
 });
 
+let revenueChartInstance = null;
+let occupancyChartInstance = null;
+
 function initializeCharts() {
     // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
-        new Chart(revenueCtx, {
+        if (revenueChartInstance) revenueChartInstance.destroy();
+        revenueChartInstance = new Chart(revenueCtx, {
             type: 'bar',
             data: {
                 labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
@@ -148,7 +190,8 @@ function initializeCharts() {
     // Occupancy Donut Chart
     const occupancyCtx = document.getElementById('occupancyChart');
     if (occupancyCtx) {
-        new Chart(occupancyCtx, {
+        if (occupancyChartInstance) occupancyChartInstance.destroy();
+        occupancyChartInstance = new Chart(occupancyCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Reformer', 'Personal', 'Grupal'],
@@ -203,18 +246,24 @@ function setupEventListeners() {
         });
     }
 
-    // Mobile sidebar toggle - Added specific ID or click handler
+    // Mobile sidebar toggle
     const sidebar = document.querySelector('.sidebar');
-    const menuBtn = document.getElementById('mobile-menu-toggle') || document.querySelector('.sidebar-header'); // Sidebar header as backup toggle
+    const menuToggle = document.getElementById('mobile-menu-toggle');
 
-    if (sidebar) {
-        // Toggle when clicking header (for mobile simulation)
-        sidebar.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768 && e.target.closest('.sidebar-header')) {
-                sidebar.classList.toggle('open');
-            }
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
         });
     }
+
+    // Close sidebar on navigation (mobile)
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+    });
 
     // Check-in Buttons
     document.addEventListener('click', async (e) => {
@@ -287,6 +336,9 @@ function showSection(sectionId) {
         pageTitle.textContent = 'Dashboard';
         renderTodayClasses();
         updateKPIs();
+
+        // Re-initialize charts to fix "shifted" or zero-size issues when switching views
+        setTimeout(initializeCharts, 100);
         return;
     }
 
@@ -392,8 +444,10 @@ function renderMembers(container) {
                                     <span>${m.nombre}</span>
                                 </div>
                             </td>
-                            <td>${m.plan}</td>
-                            <td>${m.fecha_vencimiento}</td>
+                            <td class="text-xs">
+                                <span class="plan-badge plan-${m.plan.toLowerCase().replace(' ', '-')}">${m.plan}</span>
+                            </td>
+                            <td>${new Date(m.fecha_vencimiento).toLocaleDateString('es-CL')}</td>
                             <td><span class="badge badge-${m.estado === 'Activo' ? 'success' : m.estado === 'Vencido' ? 'error' : 'warning'}">${m.estado}</span></td>
                         </tr>
                     `).join('')}
