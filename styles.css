@@ -212,6 +212,17 @@ h4,
 .nav-links {
     display: flex;
     gap: 32px;
+    align-items: center;
+}
+
+@media (max-width: 1024px) {
+    .nav-links {
+        gap: 16px;
+    }
+
+    .nav-link {
+        font-size: 0.85rem;
+    }
 }
 
 .nav-link {
