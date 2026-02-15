@@ -101,20 +101,19 @@
     <div class="main-content">
         <!-- Header -->
         <header class="header">
-            <div class="header-left flex items-center gap-md">
-                <button id="mobile-menu-toggle" class="btn btn-secondary btn-sm md-hidden" style="padding: 8px;">
+            <div class="header-left">
+                <h2 class="page-title">Dashboard</h2>
+                <p class="page-subtitle">Bienvenido de vuelta, Admin</p>
+            </div>
+
+            <div class="header-right">
+                <button id="mobile-menu-toggle" class="btn btn-secondary btn-sm md-hidden"
+                    style="padding: 8px; margin-right: 12px;">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
-                <div>
-                    <h2 class="page-title">Dashboard</h2>
-                    <p class="page-subtitle">Bienvenido de vuelta, Admin</p>
-                </div>
-            </div>
-
-            <div class="header-right">
                 <div class="search-box">
                     <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -297,7 +296,7 @@
                         <h4>5 membresías vencen esta semana</h4>
                         <p>Contactar para renovación</p>
                     </div>
-                    <button class="btn btn-secondary btn-sm">Ver</button>
+                    <button class="btn btn-secondary btn-sm" onclick="showSection('members')">Ver</button>
                 </div>
 
                 <div class="alert-card info">
@@ -307,9 +306,9 @@
                     </svg>
                     <div class="alert-content">
                         <h4>Clase Reformer 9AM completa</h4>
-                        <p>2 personas en lista de espera</p>
+                        <p>Listas de espera activas</p>
                     </div>
-                    <button class="btn btn-secondary btn-sm">Ver</button>
+                    <button class="btn btn-secondary btn-sm" onclick="showSection('waitlist')">Ver</button>
                 </div>
 
                 <div class="alert-card error">
@@ -318,10 +317,10 @@
                             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <div class="alert-content">
-                        <h4>3 leads sin contactar (>24h)</h4>
+                        <h4>Nuevos Leads sin contactar</h4>
                         <p>Requiere seguimiento urgente</p>
                     </div>
-                    <button class="btn btn-secondary btn-sm">Ver</button>
+                    <button class="btn btn-secondary btn-sm" onclick="showSection('leads')">Ver</button>
                 </div>
             </div>
         </div>

@@ -445,7 +445,7 @@ function renderMembers(container) {
         <div class="glass-card">
             <div class="p-md flex justify-between items-center border-b border-white-05">
                 <h3>Lista de Socios</h3>
-                <button class="btn btn-primary btn-sm">+ Nuevo Socio</button>
+                <button class="btn btn-primary btn-sm" onclick="showNewMemberModal()">+ Nuevo Socio</button>
             </div>
             <table>
                 <thead>
@@ -495,7 +495,7 @@ function renderLeads(container) {
                             <span class="badge badge-info">${l.phone || l.email}</span>
                         </div>
                     `).join('')}
-                    <button class="btn btn-secondary btn-sm w-full">+ Añadir</button>
+                    <button class="btn btn-secondary btn-sm w-full" onclick="handleNewLead()">+ Añadir</button>
                 </div>
             `).join('')}
         </div>
@@ -631,7 +631,54 @@ async function removeFromWaitlist(waitlistId) {
     }
 }
 
+async function handleNewLead() {
+    const nombre = prompt('Nombre del Prospecto:');
+    const email = prompt('Email/Teléfono:');
+    if (nombre && email) {
+        try {
+            const { error } = await supabase
+                .from('leads')
+                .insert([{ nombre, email, status: 'Nuevo', source: 'Manual' }]);
+            if (error) throw error;
+            alert('Lead registrado ✅');
+            fetchDashboardData();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(amount);
+}
+
+async function showNewMemberModal() {
+    const nombre = prompt('Nombre del Socio:');
+    const email = prompt('Email:');
+    if (nombre && email) {
+        try {
+            const { error } = await supabase
+                .from('socios')
+                .insert([{
+                    nombre,
+                    email,
+                    plan: 'Plan Premium',
+                    estado: 'Activo',
+                    clases_restantes: 8,
+                    fecha_vencimiento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                }]);
+            if (error) throw error;
+            alert('Socio registrado ✅');
+            fetchDashboardData();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+}
+
 window.handleCheckIn = handleCheckIn;
 window.promoteFromWaitlist = promoteFromWaitlist;
 window.removeFromWaitlist = removeFromWaitlist;
 window.showSection = showSection;
+window.handleNewLead = handleNewLead;
+window.showNewMemberModal = showNewMemberModal;

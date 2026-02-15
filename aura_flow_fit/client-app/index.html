@@ -108,7 +108,8 @@
                 <section id="recent-activity">
                     <div class="section-header flex justify-between items-center mb-md">
                         <h3 class="text-lg font-600">Tu Actividad</h3>
-                        <a href="#" class="text-primary text-sm">Ver historial</a>
+                        <a href="#" class="text-primary text-sm"
+                            onclick="showNotification('Historial detallado próximamente', 'info')">Ver historial</a>
                     </div>
                     <div class="activity-card glass-card p-md mb-lg">
                         <div class="flex items-center gap-md mb-sm">
@@ -238,23 +239,15 @@
                 <button class="btn btn-primary w-full mb-xl" id="renew-btn">Renovar Planes</button>
 
                 <div class="section-header mb-md">
-                    <h3 class="text-lg font-600">Cuenta</h3>
+                    <h3 class="text-lg font-600">Configuración</h3>
                 </div>
                 <div class="grid gap-md">
-                    <button class="btn btn-secondary w-full justify-start">Notificaciones</button>
-                    <button class="btn btn-secondary w-full justify-start">Método de Pago</button>
-                    <button class="btn btn-error w-full mt-lg">Cerrar Sesión</button>
+                    <button class="btn btn-secondary w-full justify-start"
+                        onclick="showNotification('Ajustes de notificaciones próximamente', 'info')">Notificaciones</button>
+                    <button class="btn btn-secondary w-full justify-start"
+                        onclick="showNotification('Gestión de pagos próximamente', 'info')">Método de Pago</button>
+                    <button class="btn btn-error w-full mt-lg" onclick="handleLogout()">Cerrar Sesión</button>
                 </div>
-            </section>
-
-            <div class="section-header mb-md">
-                <h3 class="text-lg font-600">Configuración</h3>
-            </div>
-            <div class="grid gap-md">
-                <button class="btn btn-secondary w-full justify-start">Notificaciones</button>
-                <button class="btn btn-secondary w-full justify-start">Método de Pago</button>
-                <button class="btn btn-error w-full mt-lg">Cerrar Sesión</button>
-            </div>
             </section>
         </main>
 

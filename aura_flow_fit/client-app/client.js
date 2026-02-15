@@ -466,8 +466,22 @@ function showTuuCheckout() {
     };
 }
 
-function simulateLoading() {
-    console.log("Client PWA Initialized with Supabase integration");
+function handleLogout() {
+    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        window.location.href = '../index.html';
+    }
 }
 
-window.handleBooking = handleBooking; // Expose to global scope
+function downloadPlanilla() {
+    showNotification('Generando planilla de entrenamiento...', 'info');
+    setTimeout(() => {
+        showNotification('Planilla descargada con éxito 📥');
+    }, 1500);
+}
+
+// Global scope exposures
+window.handleWaitlist = handleWaitlist;
+window.handleBooking = handleBooking;
+window.handleLogout = handleLogout;
+window.downloadPlanilla = downloadPlanilla;
+window.showNotification = showNotification;
