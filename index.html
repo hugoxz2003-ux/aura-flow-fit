@@ -4,408 +4,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Aura Flow Fit</title>
+    <title>Aura Flow Fit | Pilates Reformer & Gimnasio Exclusivo</title>
+    <meta name="description"
+        content="Aura Flow Fit: Pilates Reformer y entrenamiento exclusivo en Las Condes. Una experiencia premium de bienestar y fuerza.">
 
-    <!-- Shared Styles -->
-    <link rel="stylesheet" href="../shared-styles.css">
-    <link rel="stylesheet" href="dashboard.css">
-
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h1 class="logo">Aura Flow Fit</h1>
-            <span class="logo-subtitle">Admin</span>
+    <!-- Particles Background -->
+    <div id="particles-container"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <div class="logo-placeholder">
+                    <span class="logo-icon">✨</span>
+                    <span class="logo-text">AURA FLOW FIT</span>
+                </div>
+            </a>
+
+            <div class="nav-links">
+                <a href="#servicios" class="nav-link">Servicios</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
+                <a href="client-app/index.html" class="nav-link"
+                    style="color: var(--primary-500); font-weight: 700;">App Socios</a>
+                <a href="dashboard/index.html" class="nav-link" style="opacity: 0.6; font-size: 0.8rem;">Admin</a>
+            </div>
+
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
+    </nav>
 
-        <nav class="sidebar-nav">
-            <a href="#dashboard" class="nav-item active">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                    </path>
-                </svg>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="#calendar" class="nav-item">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                    </path>
-                </svg>
-                <span>Clases</span>
-            </a>
-
-            <a href="#members" class="nav-item">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                    </path>
-                </svg>
-                <span>Socios</span>
-            </a>
-
-            <a href="#leads" class="nav-item">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                    </path>
-                </svg>
-                <span>Leads</span>
-            </a>
-
-            <a href="#finances" class="nav-item">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                    </path>
-                </svg>
-                <span>Finanzas</span>
-            </a>
-
-            <a href="#evaluations" class="nav-item">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                    </path>
-                </svg>
-                <span>Evaluaciones</span>
-            </a>
-
-            <div class="nav-divider"></div>
-
-            <a href="#settings" class="nav-item">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <span>Configuración</span>
-            </a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left flex items-center gap-md">
-                <button id="mobile-menu-toggle" class="btn btn-secondary btn-sm md-hidden" style="padding: 8px;">
-                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                <div>
-                    <h2 class="page-title">Dashboard</h2>
-                    <p class="page-subtitle">Bienvenido de vuelta, Admin</p>
-                </div>
-            </div>
-
-            <div class="header-right">
-                <div class="search-box">
-                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="text" placeholder="Buscar..." class="search-input">
-                </div>
-
-                <button class="icon-btn">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                        </path>
-                    </svg>
-                    <span class="notification-badge">3</span>
-                </button>
-
-                <div class="user-menu">
-                    <img src="https://ui-avatars.com/api/?name=Admin&background=06B6D4&color=fff" alt="Admin"
-                        class="user-avatar">
-                    <span class="user-name">Admin</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- KPI Cards -->
-        <div class="kpi-grid">
-            <!-- Ingresos del Mes -->
-            <div class="kpi-card glass-card">
-                <div class="kpi-header">
-                    <div>
-                        <p class="kpi-label">Ingresos del Mes</p>
-                        <h3 class="kpi-value">$9.2M</h3>
-                    </div>
-                    <div class="kpi-chart-container">
-                        <svg class="kpi-chart" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-tertiary)" stroke-width="10" />
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--primary)" stroke-width="10"
-                                stroke-dasharray="282.7" stroke-dashoffset="70.7" transform="rotate(-90 50 50)"
-                                stroke-linecap="round" />
-                        </svg>
-                        <span class="kpi-percentage">75%</span>
-                    </div>
-                </div>
-                <div class="kpi-footer">
-                    <span class="kpi-trend positive">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                        </svg>
-                        +12.5%
-                    </span>
-                    <span class="kpi-comparison">vs mes anterior</span>
-                </div>
-            </div>
-
-            <!-- Socios Activos -->
-            <div class="kpi-card glass-card">
-                <div class="kpi-header">
-                    <div>
-                        <p class="kpi-label">Socios Activos</p>
-                        <h3 class="kpi-value">156</h3>
-                    </div>
-                    <div class="kpi-chart-container">
-                        <svg class="kpi-chart" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-tertiary)" stroke-width="10" />
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--success)" stroke-width="10"
-                                stroke-dasharray="282.7" stroke-dashoffset="42.4" transform="rotate(-90 50 50)"
-                                stroke-linecap="round" />
-                        </svg>
-                        <span class="kpi-percentage">85%</span>
-                    </div>
-                </div>
-                <div class="kpi-footer">
-                    <span class="kpi-trend positive">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                        </svg>
-                        +8 nuevos
-                    </span>
-                    <span class="kpi-comparison">este mes</span>
-                </div>
-            </div>
-
-            <!-- Ocupación Promedio -->
-            <div class="kpi-card glass-card">
-                <div class="kpi-header">
-                    <div>
-                        <p class="kpi-label">Ocupación Promedio</p>
-                        <h3 class="kpi-value">78%</h3>
-                    </div>
-                    <div class="kpi-chart-container">
-                        <svg class="kpi-chart" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-tertiary)" stroke-width="10" />
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--warning)" stroke-width="10"
-                                stroke-dasharray="282.7" stroke-dashoffset="62.2" transform="rotate(-90 50 50)"
-                                stroke-linecap="round" />
-                        </svg>
-                        <span class="kpi-percentage">78%</span>
-                    </div>
-                </div>
-                <div class="kpi-footer">
-                    <span class="kpi-trend positive">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                        </svg>
-                        +5%
-                    </span>
-                    <span class="kpi-comparison">vs semana pasada</span>
-                </div>
-            </div>
-
-            <!-- Leads Nuevos -->
-            <div class="kpi-card glass-card">
-                <div class="kpi-header">
-                    <div>
-                        <p class="kpi-label">Leads Nuevos</p>
-                        <h3 class="kpi-value">24</h3>
-                    </div>
-                    <div class="kpi-chart-container">
-                        <svg class="kpi-chart" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--bg-tertiary)" stroke-width="10" />
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--info)" stroke-width="10"
-                                stroke-dasharray="282.7" stroke-dashoffset="28.3" transform="rotate(-90 50 50)"
-                                stroke-linecap="round" />
-                        </svg>
-                        <span class="kpi-percentage">90%</span>
-                    </div>
-                </div>
-                <div class="kpi-footer">
-                    <span class="kpi-trend negative">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                        </svg>
-                        -3
-                    </span>
-                    <span class="kpi-comparison">vs mes anterior</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts Row -->
-        <div class="charts-row">
-            <!-- Revenue Chart -->
-            <div class="chart-card glass-card">
-                <div class="chart-header">
-                    <h3>Ingresos vs Objetivo</h3>
-                    <select class="chart-filter">
-                        <option>Últimos 12 meses</option>
-                        <option>Últimos 6 meses</option>
-                        <option>Últimos 3 meses</option>
-                    </select>
-                </div>
-                <canvas id="revenueChart"></canvas>
-            </div>
-
-            <!-- Occupancy Chart -->
-            <div class="chart-card glass-card">
-                <div class="chart-header">
-                    <h3>Ocupación por Tipo de Clase</h3>
-                </div>
-                <canvas id="occupancyChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Alerts Section -->
-        <div class="alerts-section">
-            <h3 class="section-title">Alertas y Notificaciones</h3>
-            <div class="alerts-grid">
-                <div class="alert-card warning">
-                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                        </path>
-                    </svg>
-                    <div class="alert-content">
-                        <h4>5 membresías vencen esta semana</h4>
-                        <p>Contactar para renovación</p>
-                    </div>
-                    <button class="btn btn-secondary btn-sm">Ver</button>
-                </div>
-
-                <div class="alert-card info">
-                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="alert-content">
-                        <h4>Clase Reformer 9AM completa</h4>
-                        <p>2 personas en lista de espera</p>
-                    </div>
-                    <button class="btn btn-secondary btn-sm">Ver</button>
-                </div>
-
-                <div class="alert-card error">
-                    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="alert-content">
-                        <h4>3 leads sin contactar (>24h)</h4>
-                        <p>Requiere seguimiento urgente</p>
-                    </div>
-                    <button class="btn btn-secondary btn-sm">Ver</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Bookings Section (NEW) -->
-        <div class="recent-bookings-section mb-2xl">
-            <h3 class="section-title">Nuevas Reservas (Últimas 24h)</h3>
-            <div class="glass-card p-0 overflow-hidden">
-                <div class="bookings-list" id="recent-bookings-list">
-                    <!-- Loaded dynamically -->
-                    <p class="p-lg text-muted text-center">Cargando reservas recientes...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Today's Classes -->
-        <div class="today-classes-section">
-            <h3 class="section-title">Clases de Hoy</h3>
-            <div class="classes-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Hora</th>
-                            <th>Clase</th>
-                            <th>Instructor</th>
-                            <th>Ocupación</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>09:00</td>
-                            <td>Pilates Reformer</td>
-                            <td>María González</td>
-                            <td>
-                                <div class="occupancy-bar">
-                                    <div class="occupancy-fill" style="width: 100%"></div>
-                                    <span>8/8</span>
-                                </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-primary btn-sm">Check-in</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>11:00</td>
-                            <td>Personal Training</td>
-                            <td>Carlos Ruiz</td>
-                            <td>
-                                <div class="occupancy-bar">
-                                    <div class="occupancy-fill" style="width: 100%"></div>
-                                    <span>1/1</span>
-                                </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-primary btn-sm">Check-in</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>18:00</td>
-                            <td>Pilates Reformer</td>
-                            <td>María González</td>
-                            <td>
-                                <div class="occupancy-bar">
-                                    <div class="occupancy-fill" style="width: 75%"></div>
-                                    <span>6/8</span>
-                                </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-primary btn-sm">Check-in</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <a href="#servicios" class="mobile-link">Servicios</a>
+        <a href="#contacto" class="mobile-link">Contacto</a>
+        <a href="client-app/index.html" class="mobile-link" style="color: var(--primary-400);">App Socios</a>
+        <a href="dashboard/index.html" class="mobile-link" style="opacity: 0.7;">Admin Portal</a>
     </div>
 
-    <!-- Supabase SDK & Config -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../supabase-config.js"></script>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <div class="hero-label">
+                    <span class="label-icon">✨</span>
+                    <span class="label-text">EXCLUSIVIDAD EN LAS CONDES</span>
+                </div>
+                <h1 class="hero-title">
+                    Eleva tu <span class="text-gradient">Cuerpo</span><br>
+                    Y tu <span class="text-gradient">Espíritu</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Pilates Reformer y entrenamiento de alta gama a una cuadra de Escuela Militar.
+                    Donde el lujo se encuentra con el rendimiento.
+                </p>
+                <div class="hero-actions">
+                    <a href="#contacto" class="btn btn-primary glow-primary">Reservar Clase</a>
+                    <a href="#servicios" class="btn btn-outline">Ver Servicios</a>
+                </div>
 
-    <!-- Dashboard Logic -->
-    <script src="dashboard.js"></script>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="500">0</span>
+                        <span class="stat-label">Miembros Felices</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="15">0</span>
+                        <span class="stat-label">Expertos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="sphere-container">
+                    <div class="sphere">
+                        <div class="sphere-inner"
+                            style="background: url('https://images.unsplash.com/photo-1518611012118-2969c6390128?auto=format&fit=crop&q=80&w=800') center/cover;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <div class="container">
+            <p class="section-label-center">CONFÍAN EN NOSOTROS</p>
+            <div class="logos-grid">
+                <div class="logo-item">PREMIUM<br>WELLNESS</div>
+                <div class="logo-item">ELITE<br>TRAINING</div>
+                <div class="logo-item">LUXURY<br>LIFESTYLE</div>
+                <div class="logo-item">EXCLUSIVE<br>MEMBERS</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicios" class="section services">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Nuestros Servicios <span class="text-gradient">Premium</span></h2>
+                <p class="section-subtitle">Diseñados para transformar tu bienestar con la máxima exclusividad.</p>
+            </div>
+
+            <div class="services-grid">
+                <!-- Service 1 -->
+                <div class="service-card-flip">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1518459031867-a89b944bffe4?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Pilates Reformer</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Pilates Reformer</h3>
+                            <p class="service-description">
+                                Equipamiento de última generación para fortalecer tu núcleo, mejorar la postura y
+                                tonificar.
+                            </p>
+                            <div class="service-features">
+                                <span class="feature-tag">Core</span>
+                                <span class="feature-tag">Flexibilidad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="service-card-flip">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Personal Training</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Personal Training</h3>
+                            <p class="service-description">
+                                Entrenadores dedicados a tus objetivos específicos en un ambiente privado y exclusivo.
+                            </p>
+                            <div class="service-features">
+                                <span class="feature-tag">1 a 1</span>
+                                <span class="feature-tag">Resultados</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="service-card-flip">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1544126592-807daf21565c?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Wellness & Recovery</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Wellness & Recovery</h3>
+                            <p class="service-description">
+                                Zonas de recuperación y relajación post-entrenamiento para un cuidado integral.
+                            </p>
+                            <div class="service-features">
+                                <span class="feature-tag">Relax</span>
+                                <span class="feature-tag">Recuperación</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="service-card-flip">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1522898467493-49fe37af7ff5?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Grupos Exclusivos</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Grupos Exclusivos</h3>
+                            <p class="service-description">
+                                Clases reducidas para garantizar la atención personalizada y la máxima comodidad.
+                            </p>
+                            <div class="service-features">
+                                <span class="feature-tag">Intimo</span>
+                                <span class="feature-tag">Comunidad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience/Showcase Section -->
+    <section id="experiencia" class="section experience">
+        <div class="container">
+            <div class="experience-grid">
+                <div class="experience-content">
+                    <h2 class="section-title">La Experiencia <br><span class="text-gradient">Aura Flow</span></h2>
+                    <p class="section-desc">
+                        Cada detalle en Aura Flow Fit ha sido pensado para ofrecerte un santuario de bienestar en medio
+                        de la ciudad.
+                        Desde la iluminación hasta la calidad del aire, todo está diseñado para potenciar tu
+                        rendimiento.
+                    </p>
+                    <ul class="feature-list">
+                        <li>
+                            <span class="check-icon">✓</span>
+                            <span>Equipamiento Premium Importado</span>
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            <span>Amenities de Lujo en Vestidores</span>
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            <span>Ubicación Privilegiada en Las Condes</span>
+                        </li>
+                    </ul>
+                    <a href="#contacto" class="btn btn-primary">Conocer Instalaciones</a>
+                </div>
+                <div class="experience-visual">
+                    <div class="glass-card showcase-card"
+                        style="background: url('https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800') center/cover;">
+                        <div class="showcase-info">
+                            <span class="showcase-label">Espacios Diseñados</span>
+                            <h3>Ambiente Inspirador</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="nosotros" class="section about">
+        <div class="container about-container">
+            <div class="about-image-wrapper">
+                <div class="about-placeholder">
+                    <span>Nuestro Equipo</span>
+                </div>
+                <!-- <img src="images/about_image.png" alt="Team Aura" class="about-image"> -->
+                <div class="about-circle-decoration"></div>
+            </div>
+            <div class="about-content">
+                <span class="label-text-calypso">SOBRE NOSOTROS</span>
+                <h2 class="section-title">Expertos en <span class="text-gradient">Movimiento</span></h2>
+                <p>
+                    En Aura Flow Fit, no solo entrenamos cuerpos, cultivamos un estilo de vida.
+                    Nuestro equipo de instructores certificados combina la disciplina del Pilates
+                    con la ciencia del entrenamiento funcional de alto nivel.
+                </p>
+                <div class="founder-quote glass-card">
+                    <p>"La verdadera exclusividad es la atención al detalle en cada movimiento."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contacto" class="section cta-section">
+        <div class="container cta-container glass-card">
+            <div class="cta-content">
+                <h2 class="cta-title">¿Listo para elevar tu estándar?</h2>
+                <p class="cta-text">Cupos limitados para mantener la exclusividad de nuestras sesiones.</p>
+                <form class="cta-form" id="contactForm">
+                    <input type="text" name="name" placeholder="Tu Nombre Completo" class="cta-input" required>
+                    <input type="email" name="email" placeholder="Tu Correo Electrónico" class="cta-input" required>
+                    <textarea name="message" placeholder="¿Alguna pregunta o meta específica?"
+                        class="cta-input cta-textarea" rows="3"></textarea>
+                    <button type="submit" class="btn btn-primary glow-primary">Solicitar Membresía</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <h3 class="footer-logo">AURA FLOW FIT</h3>
+                <p class="footer-desc">Pilates Reformer & Gimnasio Exclusivo en Las Condes.</p>
+            </div>
+            <div class="footer-links-group">
+                <h4>Explorar</h4>
+                <a href="#servicios">Servicios</a>
+                <a href="client-app/index.html">App para Socios</a>
+                <a href="dashboard/index.html">Portal Admin</a>
+            </div>
+            <div class="footer-links-group">
+                <h4>Contacto</h4>
+                <a href="#">contacto@auraflowfit.cl</a>
+                <a href="#">+56 9 1234 5678</a>
+                <a href="#">Escuela Militar, Las Condes</a>
+            </div>
+            <div class="footer-social">
+                <a href="#" class="social-icon">IG</a>
+                <a href="#" class="social-icon">LI</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Aura Flow Fit. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 
 </html>
