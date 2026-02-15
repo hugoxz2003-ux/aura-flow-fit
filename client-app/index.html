@@ -78,31 +78,103 @@
                     </div>
                 </div>
 
-                <!-- Recent Progress (ID added for navigation) -->
-                <section id="progress-view-inner">
-                    <div class="section-header flex justify-between items-center mb-md">
-                        <h3 class="text-lg font-600">Tu Evolución</h3>
-                        <a href="#" class="text-primary text-sm">Ver más</a>
+                <!-- Body Metrics Summary (NEW) -->
+                <div id="metrics-summary" class="mb-lg">
+                    <div class="flex justify-between items-center mb-md">
+                        <h3 class="text-lg font-600">Estado Físico</h3>
+                        <span class="text-muted text-xs">Actualizado hoy</span>
                     </div>
-                    <div class="progress-card glass-card p-md mb-lg">
-                        <div class="progress-chart-placeholder" id="user-progress-chart">
-                            <!-- Chart will be rendered here -->
-                            <div class="flex items-center justify-center p-xl">
-                                <p class="text-muted">Desbloquea tu 5ta clase para ver el gráfico</p>
+                    <div class="grid grid-cols-2 gap-sm">
+                        <div class="metric-mini-card card p-sm flex items-center gap-md">
+                            <div class="metric-icon" style="background: rgba(34, 197, 94, 0.1); color: #22C55E;">⚖️
                             </div>
+                            <div>
+                                <p class="text-muted text-xs">Peso</p>
+                                <p class="text-md font-600" id="home-peso">-- kg</p>
+                            </div>
+                        </div>
+                        <div class="metric-mini-card card p-sm flex items-center gap-md">
+                            <div class="metric-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">🔥
+                            </div>
+                            <div>
+                                <p class="text-muted text-xs">% Grasa</p>
+                                <p class="text-md font-600" id="home-grasa">-- %</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity/History -->
+                <section id="recent-activity">
+                    <div class="section-header flex justify-between items-center mb-md">
+                        <h3 class="text-lg font-600">Tu Actividad</h3>
+                        <a href="#" class="text-primary text-sm">Ver historial</a>
+                    </div>
+                    <div class="activity-card glass-card p-md mb-lg">
+                        <div class="flex items-center gap-md mb-sm">
+                            <div class="status-dot success"></div>
+                            <p class="text-sm">Asististe a Pilates Reformer <span class="text-muted">• Ayer</span></p>
+                        </div>
+                        <div class="flex items-center gap-md">
+                            <div class="status-dot info"></div>
+                            <p class="text-sm">Nueva meta alcanzada: 12 clases <span class="text-muted">• Mar</span></p>
                         </div>
                     </div>
                 </section>
             </section>
 
-            <!-- Progress View (Added missing view) -->
+            <!-- Progress View (Metrics Detail) -->
             <section id="progress-view" class="view">
                 <div class="section-header mb-md">
-                    <h3 class="text-lg font-600">Detalle de Progreso</h3>
+                    <h3 class="text-lg font-600">Antropometría y Evolución</h3>
+                    <p class="text-sm text-muted">Tus medidas registradas por el equipo Aura.</p>
                 </div>
-                <div class="card glass-card p-lg mb-lg">
-                    <p class="text-muted text-center p-xl">Aquí verás tu historial detallado de entrenamientos y
-                        medidas.</p>
+
+                <div class="grid gap-md mb-xl">
+                    <div class="card glass-card p-lg flex justify-between items-center">
+                        <div class="flex items-center gap-lg">
+                            <div class="metric-icon-lg">⚖️</div>
+                            <div>
+                                <p class="text-muted text-sm">Peso Actual</p>
+                                <h2 class="text-2xl font-700" id="prog-peso">-- kg</h2>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-muted">Estatura</p>
+                            <p class="font-600" id="prog-estatura">-- cm</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-md">
+                        <div class="card glass-card p-lg">
+                            <p class="text-muted text-xs uppercase mb-sm">Masa Grasa</p>
+                            <h3 class="text-2xl font-700 text-warning" id="prog-grasa">--%</h3>
+                            <div class="progress-bar-sm mt-sm">
+                                <div class="fill warning" style="width: 0%" id="bar-grasa"></div>
+                            </div>
+                        </div>
+                        <div class="card glass-card p-lg">
+                            <p class="text-muted text-xs uppercase mb-sm">Masa Muscular</p>
+                            <h3 class="text-2xl font-700 text-success" id="prog-musculo">--%</h3>
+                            <div class="progress-bar-sm mt-sm">
+                                <div class="fill success" style="width: 0%" id="bar-musculo"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Planilla de Entrenamiento</h3>
+                </div>
+                <div class="card glass-card p-lg">
+                    <div class="flex items-center gap-md mb-lg">
+                        <div class="workout-icon">🏋️</div>
+                        <div>
+                            <h4 class="font-600">Fuerza & Hipertrofia</h4>
+                            <p class="text-xs text-muted">Nivel Intermedio • 4 días/sem</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary w-full">Descargar Planilla PDF</button>
                 </div>
             </section>
 
@@ -131,30 +203,58 @@
                 <div class="section-header mb-md">
                     <h3 class="text-lg font-600">Mi Membresía</h3>
                 </div>
-                <div class="card glass-card p-lg mb-lg">
-                    <div class="flex justify-between items-start mb-md">
-                        <div>
-                            <h4 class="text-primary text-xl" id="profile-plan-name">Plan Premium</h4>
-                            <p class="text-muted text-sm" id="profile-clases-restantes">8 Clases / Mes</p>
+                <div class="membership-card premium-card mb-lg overflow-hidden">
+                    <div class="premium-pattern"></div>
+                    <div class="p-lg relative">
+                        <div class="flex justify-between items-start mb-xl">
+                            <div>
+                                <span class="text-xs font-700 uppercase tracking-widest opacity-70">Socio VIP</span>
+                                <h2 class="text-2xl font-800 mt-xs" id="profile-plan-name">Cargando...</h2>
+                            </div>
+                            <div id="profile-status-badge" class="badge-premium">--</div>
                         </div>
-                        <span class="badge badge-success" id="profile-status-badge">Activo</span>
+
+                        <div class="grid grid-cols-2 gap-lg mb-xl">
+                            <div>
+                                <p class="text-xs opacity-70 uppercase font-700">Clases Mensuales</p>
+                                <p class="text-lg font-600" id="profile-clases-totales">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs opacity-70 uppercase font-700">Restantes</p>
+                                <p class="text-lg font-800 text-primary-light" id="profile-clases-restantes">--</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-end border-t border-white-10 pt-md">
+                            <div>
+                                <p class="text-xs opacity-70">Próximo Cobro</p>
+                                <p class="font-600" id="profile-vencimiento-date">--/--/--</p>
+                            </div>
+                            <div class="text-xs font-700">MARZO 2024</div>
+                        </div>
                     </div>
-                    <div class="mb-lg">
-                        <p class="text-xs text-muted uppercase font-700 mb-xs">Próximo Cobro</p>
-                        <p class="text-lg font-600" id="profile-vencimiento-date">05 de Marzo, 2024</p>
-                    </div>
-                    <button class="btn btn-primary w-full" id="renew-btn">Renovar con TUU</button>
-                    <p class="text-center text-xs text-muted mt-sm">Pago seguro procesado por tuu.cl</p>
                 </div>
 
+                <button class="btn btn-primary w-full mb-xl" id="renew-btn">Renovar Planes</button>
+
                 <div class="section-header mb-md">
-                    <h3 class="text-lg font-600">Configuración</h3>
+                    <h3 class="text-lg font-600">Cuenta</h3>
                 </div>
                 <div class="grid gap-md">
                     <button class="btn btn-secondary w-full justify-start">Notificaciones</button>
                     <button class="btn btn-secondary w-full justify-start">Método de Pago</button>
                     <button class="btn btn-error w-full mt-lg">Cerrar Sesión</button>
                 </div>
+            </section>
+
+            <div class="section-header mb-md">
+                <h3 class="text-lg font-600">Configuración</h3>
+            </div>
+            <div class="grid gap-md">
+                <button class="btn btn-secondary w-full justify-start">Notificaciones</button>
+                <button class="btn btn-secondary w-full justify-start">Método de Pago</button>
+                <button class="btn btn-error w-full mt-lg">Cerrar Sesión</button>
+            </div>
             </section>
         </main>
 

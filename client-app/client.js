@@ -27,19 +27,28 @@ async function initClient() {
         if (classError) throw classError;
         clientData.classes = classes;
 
-        // Fetch User Reservations
+        // Fetch User Reservations (Future and Recent)
         const { data: bookings, error: bookingsError } = await supabase
             .from('reservas')
             .select('*, clases(*)')
             .eq('socio_id', clientData.user.id)
-            .eq('estado', 'Confirmada');
+            .order('fecha', { ascending: true });
 
         if (bookingsError) throw bookingsError;
         clientData.bookings = bookings;
 
+        // Fetch Waitlist status
+        const { data: waitlist, error: waitlistError } = await supabase
+            .from('lista_espera')
+            .select('*, clases(*)')
+            .eq('socio_id', clientData.user.id);
+
+        clientData.waitlist = waitlist || [];
+
         console.log('Client data initialized:', clientData);
 
         updateProfileUI();
+        updateMetricsUI();
         renderBookingClasses();
         renderUserBookings();
     } catch (err) {
@@ -52,8 +61,8 @@ function renderUserBookings() {
     const nextContainer = document.getElementById('next-booking-container');
     if (!listContainer || !nextContainer) return;
 
-    if (clientData.bookings.length === 0) {
-        listContainer.innerHTML = '<p class="text-sm text-muted p-md">Aún no tienes reservas para esta semana.</p>';
+    if (clientData.bookings.length === 0 && clientData.waitlist.length === 0) {
+        listContainer.innerHTML = '<p class="text-sm text-muted p-md">Aún no tienes reservas activas.</p>';
         nextContainer.innerHTML = `
             <div class="next-class">
                 <p class="label">Próxima Clase</p>
@@ -64,36 +73,44 @@ function renderUserBookings() {
         return;
     }
 
-    // Sort bookings by date/time (simple sort for demo)
-    const sorted = [...clientData.bookings].sort((a, b) => a.fecha.localeCompare(b.fecha));
+    // Format for sorting
+    const allEvents = [
+        ...clientData.bookings.map(b => ({ ...b, type: 'RES' })),
+        ...clientData.waitlist.map(w => ({ ...w, type: 'WAIT' }))
+    ].sort((a, b) => a.fecha.localeCompare(b.fecha));
 
     // Update Next Booking Card
-    const next = sorted[0];
+    const next = allEvents[0];
+    const dateObj = new Date(next.fecha + 'T00:00:00');
+    const dateString = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+
     nextContainer.innerHTML = `
         <div class="next-class">
-            <p class="label">Próxima Clase</p>
-            <h3 class="value">${next.fecha} - ${next.clases.horario.substring(0, 5)}</h3>
+            <p class="label">${next.type === 'WAIT' ? 'En Lista de Espera' : 'Próxima Clase'}</p>
+            <h3 class="value">${dateString} • ${next.clases.horario.substring(0, 5)}</h3>
             <p class="subtitle">${next.clases.nombre} - Prof. ${next.clases.instructor}</p>
         </div>
         <div class="class-countdown">
-            <svg class="circular-progress" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />
-                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--primary)" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="140" />
-            </svg>
-            <span class="countdown-text">OK</span>
+            ${next.type === 'WAIT' ? '⌛' : '✅'}
         </div>
     `;
 
     // Render List
-    listContainer.innerHTML = sorted.map(b => `
-        <div class="card p-md flex justify-between items-center">
-            <div>
-                <p class="font-600">${b.clases.nombre}</p>
-                <p class="text-xs text-muted">${b.fecha} • ${b.clases.horario.substring(0, 5)}</p>
+    listContainer.innerHTML = allEvents.map(b => {
+        const bDate = new Date(b.fecha + 'T00:00:00');
+        const bDateStr = bDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' });
+        return `
+            <div class="card p-md flex justify-between items-center ${b.type === 'WAIT' ? 'border-warning' : ''}">
+                <div>
+                    <p class="font-600">${b.clases.nombre}</p>
+                    <p class="text-xs text-muted">${bDateStr} • ${b.clases.horario.substring(0, 5)}</p>
+                </div>
+                <span class="badge ${b.type === 'WAIT' ? 'badge-warning' : 'badge-success'}">
+                    ${b.type === 'WAIT' ? 'Espera' : 'Confirmada'}
+                </span>
             </div>
-            <span class="badge badge-success">Confirmada</span>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -146,27 +163,57 @@ function updateProfileUI() {
 
     // Update Profile View
     const planName = document.getElementById('profile-plan-name');
+    const clasesTotales = document.getElementById('profile-clases-totales');
     const clasesRestantes = document.getElementById('profile-clases-restantes');
     const statusBadge = document.getElementById('profile-status-badge');
     const vencimientoDate = document.getElementById('profile-vencimiento-date');
 
     if (planName) planName.textContent = clientData.user.plan;
-    if (clasesRestantes) clasesRestantes.textContent = `${clientData.user.clases_restantes} Clases disponibles`;
+    if (clasesTotales) clasesTotales.textContent = '8 Sesiones'; // Hardcoded for MVP or fetch from plan
+    if (clasesRestantes) clasesRestantes.textContent = `${clientData.user.clases_restantes}`;
+
     if (statusBadge) {
         statusBadge.textContent = clientData.user.estado;
-        statusBadge.className = `badge badge-${clientData.user.estado === 'Activo' ? 'success' : 'error'}`;
+        statusBadge.className = 'badge-premium';
     }
+
     if (vencimientoDate) {
         const date = new Date(clientData.user.fecha_vencimiento);
-        vencimientoDate.textContent = date.toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+        vencimientoDate.textContent = date.toLocaleDateString('es-CL', { day: '2-digit', month: 'long' });
     }
 
     // Update Home Summary
-    const homeVencimiento = document.querySelector('.stats-grid .card:last-child h4');
-    if (homeVencimiento) {
+    const membershipDay = document.querySelector('.stats-grid .card:last-child h4');
+    if (membershipDay) {
         const days = Math.ceil((new Date(clientData.user.fecha_vencimiento) - new Date()) / (1000 * 60 * 60 * 24));
-        homeVencimiento.textContent = `${days} días`;
+        membershipDay.textContent = `${days} días`;
     }
+}
+
+function updateMetricsUI() {
+    if (!clientData.user) return;
+
+    // Home Summary
+    const homePeso = document.getElementById('home-peso');
+    const homeGrasa = document.getElementById('home-grasa');
+    if (homePeso) homePeso.textContent = `${clientData.user.peso || '--'} kg`;
+    if (homeGrasa) homeGrasa.textContent = `${clientData.user.porcentaje_grasa || '--'} %`;
+
+    // Detail View
+    const progPeso = document.getElementById('prog-peso');
+    const progEstatura = document.getElementById('prog-estatura');
+    const progGrasa = document.getElementById('prog-grasa');
+    const progMusculo = document.getElementById('prog-musculo');
+    const barGrasa = document.getElementById('bar-grasa');
+    const barMusculo = document.getElementById('bar-musculo');
+
+    if (progPeso) progPeso.textContent = `${clientData.user.peso || '--'} kg`;
+    if (progEstatura) progEstatura.textContent = `${clientData.user.estatura || '--'} cm`;
+    if (progGrasa) progGrasa.textContent = `${clientData.user.porcentaje_grasa || '--'}%`;
+    if (progMusculo) progMusculo.textContent = `${clientData.user.porcentaje_musculo || '--'}%`;
+
+    if (barGrasa) barGrasa.style.width = `${clientData.user.porcentaje_grasa || 0}%`;
+    if (barMusculo) barMusculo.style.width = `${clientData.user.porcentaje_musculo || 0}%`;
 }
 
 function renderBookingClasses() {
@@ -178,22 +225,60 @@ function renderBookingClasses() {
         return;
     }
 
-    container.innerHTML = clientData.classes.map(c => {
-        const isFull = c.cupos_ocupados >= c.cupos_max;
-        return `
-            <div class="class-card-item card flex justify-between items-center ${isFull ? 'opacity-50' : ''}">
-                <div>
-                    <p class="time">${c.horario.substring(0, 5)}</p>
-                    <p class="type">${c.nombre}</p>
-                    <p class="instructor text-muted text-sm">Prof. ${c.instructor}</p>
+    // Group by Date (Demo uses one day for now, but logical grouping helps)
+    const pilatesClasses = clientData.classes.filter(c => c.tipo === 'pilates');
+    const gymClasses = clientData.classes.filter(c => c.tipo === 'entrenamiento');
+
+    let html = '';
+
+    if (pilatesClasses.length > 0) {
+        html += '<h4 class="text-sm font-700 uppercase opacity-50 mb-sm">Clases de Pilates (Cupo 10)</h4>';
+        html += pilatesClasses.map(c => {
+            const isFull = c.cupos_ocupados >= 10; // Cap at 10 as requested
+            const isBooked = clientData.bookings.some(b => b.clase_id === c.id);
+            const isWaitlisted = clientData.waitlist.some(w => w.clase_id === c.id);
+
+            return `
+                <div class="class-card-item card flex justify-between items-center ${isFull && !isWaitlisted && !isBooked ? 'border-warning' : ''}">
+                    <div>
+                        <p class="time">${c.horario.substring(0, 5)}</p>
+                        <p class="type">${c.nombre}</p>
+                        <p class="instructor text-muted text-sm">Prof. ${c.instructor} • ${c.cupos_ocupados}/10</p>
+                    </div>
+                    ${isBooked
+                    ? '<span class="text-success font-700 text-sm">✓ Agendada</span>'
+                    : isWaitlisted
+                        ? '<span class="text-warning font-700 text-sm">⌛ En Espera</span>'
+                        : isFull
+                            ? `<button class="btn btn-secondary btn-sm" onclick="handleWaitlist('${c.id}', '${c.nombre}')">Lista de Espera</button>`
+                            : `<button class="btn btn-primary btn-sm" onclick="handleBooking('${c.id}', '${c.nombre}', '${c.horario}')">Reservar</button>`
+                }
                 </div>
-                ${isFull
-                ? '<button class="btn btn-secondary btn-sm" disabled>Completo</button>'
-                : `<button class="btn btn-primary btn-sm" onclick="handleBooking('${c.id}', '${c.nombre}', '${c.horario}')">Reservar</button>`
-            }
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
+    }
+
+    if (gymClasses.length > 0) {
+        html += '<h4 class="text-sm font-700 uppercase opacity-50 mt-lg mb-sm">Entrenamiento (Con Planilla)</h4>';
+        html += gymClasses.map(c => {
+            const isBooked = clientData.bookings.some(b => b.clase_id === c.id);
+            return `
+                <div class="class-card-item card flex justify-between items-center bg-zinc-900/30">
+                    <div>
+                        <p class="time">${c.horario.substring(0, 5)}</p>
+                        <p class="type">${c.nombre}</p>
+                        <p class="instructor text-muted text-sm">Acceso libre con planilla de entrenamiento</p>
+                    </div>
+                    ${isBooked
+                    ? '<span class="text-success font-700 text-sm">✓ Confirmado</span>'
+                    : `<button class="btn btn-primary btn-sm" onclick="handleBooking('${c.id}', '${c.nombre}', '${c.horario}')">Ingresar</button>`
+                }
+                </div>
+            `;
+        }).join('');
+    }
+
+    container.innerHTML = html;
 }
 
 async function handleBooking(classId, className, classTime) {
@@ -207,6 +292,9 @@ async function handleBooking(classId, className, classTime) {
         return;
     }
 
+    const classObj = clientData.classes.find(c => c.id === classId);
+    const dateStr = new Date().toISOString().split('T')[0]; // Simplify for demo to today
+
     if (confirm(`¿Confirmas tu reserva para ${className} a las ${classTime.substring(0, 5)}?`)) {
         try {
             // 1. Create reservation
@@ -215,21 +303,21 @@ async function handleBooking(classId, className, classTime) {
                 .insert([{
                     socio_id: clientData.user.id,
                     clase_id: classId,
-                    fecha: new Date().toISOString().split('T')[0]
+                    fecha: dateStr
                 }]);
 
             if (resError) throw resError;
 
-            // 2. Update user's remaining classes
-            const { error: userUpdateError } = await supabase
-                .from('socios')
-                .update({ clases_restantes: clientData.user.clases_restantes - 1 })
-                .eq('id', clientData.user.id);
-
-            if (userUpdateError) throw userUpdateError;
+            // 2. Update user's remaining classes (only for Pilates)
+            if (classObj.tipo === 'pilates') {
+                const { error: userUpdateError } = await supabase
+                    .from('socios')
+                    .update({ clases_restantes: clientData.user.clases_restantes - 1 })
+                    .eq('id', clientData.user.id);
+                if (userUpdateError) throw userUpdateError;
+            }
 
             // 3. Update class occupancy
-            const classObj = clientData.classes.find(c => c.id === classId);
             const { error: classUpdateError } = await supabase
                 .from('clases')
                 .update({ cupos_ocupados: classObj.cupos_ocupados + 1 })
@@ -237,16 +325,41 @@ async function handleBooking(classId, className, classTime) {
 
             if (classUpdateError) throw classUpdateError;
 
-            // Refresh data
             showNotification('¡Reserva realizada con éxito! ✅');
-            initClient(); // Refresh UI
-
+            initClient();
         } catch (err) {
             console.error('Error in handling booking:', err);
             showNotification('Error al realizar la reserva', 'error');
         }
     }
 }
+
+async function handleWaitlist(classId, className) {
+    if (confirm(`La clase de ${className} está llena. ¿Deseas unirte a la lista de espera?`)) {
+        try {
+            const { error: waitError } = await supabase
+                .from('lista_espera')
+                .insert([{
+                    socio_id: clientData.user.id,
+                    clase_id: classId,
+                    fecha: new Date().toISOString().split('T')[0]
+                }]);
+
+            if (waitError) throw waitError;
+
+            showNotification('Te has unido a la lista de espera ⌛');
+            initClient();
+        } catch (err) {
+            console.error('Error joining waitlist:', err);
+            showNotification('Error al unirse a la lista de espera', 'error');
+        }
+    }
+}
+
+// Global scope exposures
+window.handleWaitlist = handleWaitlist;
+window.handleBooking = handleBooking;
+
 
 function initBooking() {
     const dayButtons = document.querySelectorAll('.day-btn');
