@@ -27,13 +27,73 @@ async function initClient() {
         if (classError) throw classError;
         clientData.classes = classes;
 
+        // Fetch User Reservations
+        const { data: bookings, error: bookingsError } = await supabase
+            .from('reservas')
+            .select('*, clases(*)')
+            .eq('socio_id', clientData.user.id)
+            .eq('estado', 'Confirmada');
+
+        if (bookingsError) throw bookingsError;
+        clientData.bookings = bookings;
+
         console.log('Client data initialized:', clientData);
 
         updateProfileUI();
         renderBookingClasses();
+        renderUserBookings();
     } catch (err) {
         console.error('Error initializing client:', err);
     }
+}
+
+function renderUserBookings() {
+    const listContainer = document.getElementById('my-bookings-list');
+    const nextContainer = document.getElementById('next-booking-container');
+    if (!listContainer || !nextContainer) return;
+
+    if (clientData.bookings.length === 0) {
+        listContainer.innerHTML = '<p class="text-sm text-muted p-md">Aún no tienes reservas para esta semana.</p>';
+        nextContainer.innerHTML = `
+            <div class="next-class">
+                <p class="label">Próxima Clase</p>
+                <h3 class="value">Sin agendamiento</h3>
+                <p class="subtitle">¡Reserva tu primera clase hoy!</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Sort bookings by date/time (simple sort for demo)
+    const sorted = [...clientData.bookings].sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+    // Update Next Booking Card
+    const next = sorted[0];
+    nextContainer.innerHTML = `
+        <div class="next-class">
+            <p class="label">Próxima Clase</p>
+            <h3 class="value">${next.fecha} - ${next.clases.horario.substring(0, 5)}</h3>
+            <p class="subtitle">${next.clases.nombre} - Prof. ${next.clases.instructor}</p>
+        </div>
+        <div class="class-countdown">
+            <svg class="circular-progress" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" />
+                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--primary)" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="140" />
+            </svg>
+            <span class="countdown-text">OK</span>
+        </div>
+    `;
+
+    // Render List
+    listContainer.innerHTML = sorted.map(b => `
+        <div class="card p-md flex justify-between items-center">
+            <div>
+                <p class="font-600">${b.clases.nombre}</p>
+                <p class="text-xs text-muted">${b.fecha} • ${b.clases.horario.substring(0, 5)}</p>
+            </div>
+            <span class="badge badge-success">Confirmada</span>
+        </div>
+    `).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {

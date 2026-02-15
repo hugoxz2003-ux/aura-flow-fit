@@ -48,21 +48,19 @@
             <!-- Summary Card -->
             <section id="home-view" class="view active">
                 <div class="summary-card glass-card mb-lg">
-                    <div class="card-content">
+                    <div class="card-content" id="next-booking-container">
                         <div class="next-class">
                             <p class="label">Próxima Clase</p>
-                            <h3 class="value">Mañana, 09:00</h3>
-                            <p class="subtitle">Pilates Reformer - María G.</p>
+                            <h3 class="value">Cargando...</h3>
                         </div>
-                        <div class="class-countdown">
-                            <svg class="circular-progress" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)"
-                                    stroke-width="8" />
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--primary)" stroke-width="8"
-                                    stroke-dasharray="283" stroke-dashoffset="70" />
-                            </svg>
-                            <span class="countdown-text">16h</span>
-                        </div>
+                    </div>
+                </div>
+
+                <div id="my-bookings-section" class="mb-lg">
+                    <h3 class="text-lg font-600 mb-md">Mis Reservas Activas</h3>
+                    <div id="my-bookings-list" class="grid gap-sm">
+                        <!-- Bookings will be rendered here -->
+                        <p class="text-muted text-sm px-md">Buscando tus clases...</p>
                     </div>
                 </div>
 
