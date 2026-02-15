@@ -476,6 +476,14 @@ h4,
     height: 400px;
     perspective: 1000px;
     cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-card-flip.reveal {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .service-card-inner {

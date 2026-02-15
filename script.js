@@ -58,13 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                // Add animation class if needed, or trigger specific logic
+                // Add reveal class for specific elements
+                if (entry.target.classList.contains('service-card-flip')) {
+                    entry.target.classList.add('reveal');
+                }
+
+                // Trigger stats animation
                 if (entry.target.classList.contains('hero-stats') && !hasAnimatedStats) {
                     animateStats();
                     hasAnimatedStats = true;
                 }
 
-                // Add fade-in class for generic sections
+                // Generic reveal
                 entry.target.style.opacity = 1;
                 entry.target.style.transform = 'translateY(0)';
             }
@@ -74,6 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Observe stats container
     const heroStats = document.querySelector('.hero-stats');
     if (heroStats) observer.observe(heroStats);
+
+    // Observe service cards
+    const serviceCards = document.querySelectorAll('.service-card-flip');
+    serviceCards.forEach(card => observer.observe(card));
 
     // 5. Flip Card Touch Support for Mobile
     const cards = document.querySelectorAll('.service-card-flip');
