@@ -93,6 +93,21 @@ function renderRecentBookings() {
 
 // Keep DUMMY for modules not yet connected
 const DUMMY_DATA = {
+    plans: {
+        pilates: [
+            { id: 'p1', name: 'Mensual 1x', price: 45000, freq: 1, duration: 1 },
+            { id: 'p2', name: 'Mensual 2x', price: 65000, freq: 2, duration: 1 },
+            { id: 'p3', name: 'Mensual 3x', price: 85000, freq: 3, duration: 1 },
+            { id: 'p4', name: 'Mensual 4x', price: 105000, freq: 4, duration: 1 },
+            { id: 'p5', name: 'Trimestral 2x', price: 180000, freq: 2, duration: 3 },
+            { id: 'p6', name: 'Semestral 2x', price: 330000, freq: 2, duration: 6 }
+        ],
+        gym: [
+            { id: 'g1', name: 'Mensual', price: 35000, duration: 1 },
+            { id: 'g2', name: 'Trimestral', price: 90000, duration: 3 },
+            { id: 'g3', name: 'Semestral', price: 160000, duration: 6 }
+        ]
+    },
     leads: [
         { id: 1, name: 'Juan Pérez', email: 'juan@prospecto.cl', phone: '+56912345678', source: 'Instagram', status: 'Nuevo' },
         { id: 2, name: 'Clara Soto', email: 'clara@prospecto.cl', phone: '+56987654321', source: 'Web', status: 'Contactado' },
@@ -427,6 +442,10 @@ function showSection(sectionId) {
             pageTitle.textContent = 'Calendario de Clases';
             renderCalendar(dynamicContent);
             break;
+        case 'plans':
+            pageTitle.textContent = 'Gestión de Planes y Precios';
+            renderPlans(dynamicContent);
+            break;
         case 'waitlist':
             pageTitle.textContent = 'Lista de Espera';
             renderWaitlist(dynamicContent);
@@ -653,27 +672,98 @@ function formatCurrency(amount) {
 }
 
 async function showNewMemberModal() {
+    // In a real premium app we would have a proper modal. 
+    // For now we use prompts for agility as requested to fix functionality first.
     const nombre = prompt('Nombre del Socio:');
     const email = prompt('Email:');
-    if (nombre && email) {
-        try {
-            const { error } = await supabase
-                .from('socios')
-                .insert([{
-                    nombre,
-                    email,
-                    plan: 'Plan Premium',
-                    estado: 'Activo',
-                    clases_restantes: 8,
-                    fecha_vencimiento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                }]);
-            if (error) throw error;
-            alert('Socio registrado ✅');
-            fetchDashboardData();
-        } catch (err) {
-            alert('Error: ' + err.message);
-        }
+    if (!nombre || !email) return;
+
+    let planType = prompt('Tipo de Plan (1: Pilates, 2: Gimnasio):');
+    let planName = '';
+    let clasesRestantes = 0;
+
+    if (planType === '1') {
+        let freq = prompt('Frecuencia Pilates (1, 2, 3 o 4 veces por semana):');
+        planName = `Pilates ${freq}x Semanal`;
+        clasesRestantes = parseInt(freq) * 4;
+    } else {
+        planName = 'Plan Entrenamiento Gimnasio';
+        clasesRestantes = 99; // Unlimited for gym
     }
+
+    try {
+        const { error } = await supabase
+            .from('socios')
+            .insert([{
+                nombre,
+                email,
+                plan: planName,
+                estado: 'Activo',
+                clases_restantes: clasesRestantes,
+                fecha_vencimiento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            }]);
+        if (error) throw error;
+        alert('Socio registrado ✅');
+        fetchDashboardData();
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function renderPlans(container) {
+    container.innerHTML = `
+        <div class="grid grid-cols-2 gap-lg mb-lg">
+            <div class="glass-card p-lg">
+                <h3 class="mb-md text-primary">Pilates Reformer</h3>
+                <p class="text-xs text-muted mb-lg">Configuración de precios por frecuencia semanal</p>
+                <div class="grid gap-md">
+                    ${DUMMY_DATA.plans.pilates.map(p => `
+                        <div class="flex justify-between items-center p-md bg-white-05 rounded-xl border border-white-05 plan-editor-card">
+                            <div>
+                                <p class="font-600">${p.name}</p>
+                                <p class="text-xs text-muted">${p.duration} mes(es) • ${p.freq} vez/sem</p>
+                            </div>
+                            <div class="flex items-center gap-sm">
+                                <span class="text-xs opacity-60">CLP</span>
+                                <input type="number" class="price-input" value="${p.price}" onchange="updatePlanPrice('pilates', '${p.id}', this.value)">
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="glass-card p-lg">
+                <h3 class="mb-md text-success">Gimnasio</h3>
+                <p class="text-xs text-muted mb-lg">Planes de musculación y entrenamiento libre</p>
+                <div class="grid gap-md">
+                    ${DUMMY_DATA.plans.gym.map(p => `
+                        <div class="flex justify-between items-center p-md bg-white-05 rounded-xl border border-white-05 plan-editor-card">
+                            <div>
+                                <p class="font-600">${p.name}</p>
+                                <p class="text-xs text-muted">${p.duration} mes(es)</p>
+                            </div>
+                            <div class="flex items-center gap-sm">
+                                <span class="text-xs opacity-60">CLP</span>
+                                <input type="number" class="price-input" value="${p.price}" onchange="updatePlanPrice('gym', '${p.id}', this.value)">
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end p-md">
+            <button class="btn btn-primary" onclick="savePlanConfig()">Guardar Configuración</button>
+        </div>
+    `;
+}
+
+function updatePlanPrice(type, id, newPrice) {
+    const plan = DUMMY_DATA.plans[type].find(p => p.id === id);
+    if (plan) plan.price = parseInt(newPrice);
+    console.log(`Updated price for ${id}: ${newPrice}`);
+}
+
+function savePlanConfig() {
+    alert('Configuración de planes guardada exitosamente ✅');
 }
 
 window.handleCheckIn = handleCheckIn;
@@ -682,3 +772,5 @@ window.removeFromWaitlist = removeFromWaitlist;
 window.showSection = showSection;
 window.handleNewLead = handleNewLead;
 window.showNewMemberModal = showNewMemberModal;
+window.updatePlanPrice = updatePlanPrice;
+window.savePlanConfig = savePlanConfig;

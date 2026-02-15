@@ -29,8 +29,11 @@
         <!-- Top Header -->
         <header class="app-header">
             <div class="user-greeting">
+                <div class="flex items-center gap-sm mb-xs">
+                    <span class="text-xl">✨</span>
+                    <span class="font-800 tracking-tighter text-sm opacity-80">AURA FLOW FIT</span>
+                </div>
                 <p class="greeting">Hola, <span id="user-name">María</span> 👋</p>
-                <h2 class="app-title">Tu Progreso</h2>
             </div>
             <div class="header-actions">
                 <button class="icon-btn" id="notif-btn">
@@ -175,7 +178,12 @@
                             <p class="text-xs text-muted">Nivel Intermedio • 4 días/sem</p>
                         </div>
                     </div>
-                    <button class="btn btn-secondary w-full">Descargar Planilla PDF</button>
+                    <div class="flex gap-sm">
+                        <button class="btn btn-secondary flex-1" onclick="downloadPlanilla()">Planilla PDF</button>
+                        <button id="gym-eval-btn" class="btn btn-primary flex-1" style="display: none;"
+                            onclick="showNotification('Solicitud de evaluación enviada. Un instructor te contactará.', 'success')">Agendar
+                            Eval.</button>
+                    </div>
                 </div>
             </section>
 

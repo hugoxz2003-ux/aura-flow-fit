@@ -49,12 +49,48 @@ async function initClient() {
 
         updateProfileUI();
         updateMetricsUI();
+        initCalendar(); // Initialize calendar dates
         renderBookingClasses();
         renderUserBookings();
     } catch (err) {
         console.error('Error initializing client:', err);
     }
 }
+
+let selectedDate = new Date().toISOString().split('T')[0];
+
+function initCalendar() {
+    const calendarDays = document.getElementById('calendar-days');
+    if (!calendarDays) return;
+
+    // Generate next 30 days
+    let html = '';
+    const today = new Date();
+
+    for (let i = 0; i < 30; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        const dayNum = d.getDate();
+        const dayLabel = d.toLocaleDateString('es-ES', { weekday: 'short' }).substring(0, 2).toUpperCase();
+        const isToday = i === 0;
+
+        html += `
+            <button class="day-btn ${isToday ? 'active' : ''}" data-date="${iso}" onclick="selectDate('${iso}', this)">
+                <span class="day">${dayLabel}</span>
+                <span class="date">${dayNum}</span>
+            </button>
+        `;
+    }
+    calendarDays.innerHTML = html;
+}
+
+window.selectDate = (date, btn) => {
+    selectedDate = date;
+    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBookingClasses();
+};
 
 function renderUserBookings() {
     const listContainer = document.getElementById('my-bookings-list');
@@ -182,6 +218,12 @@ function updateProfileUI() {
         vencimientoDate.textContent = date.toLocaleDateString('es-CL', { day: '2-digit', month: 'long' });
     }
 
+    // Show Eval button only for Gym plans
+    const evalBtn = document.getElementById('gym-eval-btn');
+    if (evalBtn && clientData.user.plan && clientData.user.plan.toLowerCase().includes('entrenamiento')) {
+        evalBtn.style.display = 'block';
+    }
+
     // Update Home Summary
     const membershipDay = document.querySelector('.stats-grid .card:last-child h4');
     if (membershipDay) {
@@ -225,11 +267,20 @@ function renderBookingClasses() {
         return;
     }
 
-    // Group by Date (Demo uses one day for now, but logical grouping helps)
+    // Group by Date
+    // Note: In real app, we'd fetch classes for specific day. 
+    // For demo, we vary availability based on the day.
+    const daySeed = new Date(selectedDate).getDate();
+
     const pilatesClasses = clientData.classes.filter(c => c.tipo === 'pilates');
     const gymClasses = clientData.classes.filter(c => c.tipo === 'entrenamiento');
 
-    let html = '';
+    let html = `
+        <div class="mb-md p-md glass-card" style="border-left: 4px solid var(--primary-500)">
+            <p class="text-xs font-700 uppercase opacity-60">Horarios para el</p>
+            <h3 class="text-lg font-700">${new Date(selectedDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
+        </div>
+    `;
 
     if (pilatesClasses.length > 0) {
         html += '<h4 class="text-sm font-700 uppercase opacity-50 mb-sm">Clases de Pilates (Cupo 10)</h4>';
