@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura Flow Fit - Socios</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#18181B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="../images/icon-192.png">
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared-styles.css">
+    <link rel="stylesheet" href="client.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+        <!-- Top Header -->
+        <header class="app-header">
+            <div class="user-greeting">
+                <p class="greeting">Hola, <span id="user-name">María</span> 👋</p>
+                <h2 class="app-title">Tu Progreso</h2>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="notif-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- Summary Card -->
+            <section id="home-view" class="view active">
+                <div class="summary-card glass-card mb-lg">
+                    <div class="card-content">
+                        <div class="next-class">
+                            <p class="label">Próxima Clase</p>
+                            <h3 class="value">Mañana, 09:00</h3>
+                            <p class="subtitle">Pilates Reformer - María G.</p>
+                        </div>
+                        <div class="class-countdown">
+                            <svg class="circular-progress" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)"
+                                    stroke-width="8" />
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="var(--primary)" stroke-width="8"
+                                    stroke-dasharray="283" stroke-dashoffset="70" />
+                            </svg>
+                            <span class="countdown-text">16h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid grid grid-cols-2 gap-md mb-lg">
+                    <div class="card p-md">
+                        <p class="text-muted text-xs">Asistencias</p>
+                        <h4 class="text-xl">12</h4>
+                        <p class="text-success text-xs">↑ 2 este mes</p>
+                    </div>
+                    <div class="card p-md">
+                        <p class="text-muted text-xs">Membresía</p>
+                        <h4 class="text-xl">18 días</h4>
+                        <p class="text-warning text-xs">Vence 05 Mar</p>
+                    </div>
+                </div>
+
+                <!-- Recent Progress (ID added for navigation) -->
+                <section id="progress-view-inner">
+                    <div class="section-header flex justify-between items-center mb-md">
+                        <h3 class="text-lg font-600">Tu Evolución</h3>
+                        <a href="#" class="text-primary text-sm">Ver más</a>
+                    </div>
+                    <div class="progress-card glass-card p-md mb-lg">
+                        <div class="progress-chart-placeholder" id="user-progress-chart">
+                            <!-- Chart will be rendered here -->
+                            <div class="flex items-center justify-center p-xl">
+                                <p class="text-muted">Desbloquea tu 5ta clase para ver el gráfico</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Progress View (Added missing view) -->
+            <section id="progress-view" class="view">
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Detalle de Progreso</h3>
+                </div>
+                <div class="card glass-card p-lg mb-lg">
+                    <p class="text-muted text-center p-xl">Aquí verás tu historial detallado de entrenamientos y
+                        medidas.</p>
+                </div>
+            </section>
+
+            <!-- Classes Booking View -->
+            <section id="booking-view" class="view">
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Agendar Clase</h3>
+                </div>
+                <div class="calendar-strip mb-md">
+                    <!-- Day selection scrolling container -->
+                    <div class="days-container flex gap-sm">
+                        <div class="day-btn active"><span>Lun</span><strong>15</strong></div>
+                        <div class="day-btn"><span>Mar</span><strong>16</strong></div>
+                        <div class="day-btn"><span>Mie</span><strong>17</strong></div>
+                        <div class="day-btn"><span>Jue</span><strong>18</strong></div>
+                        <div class="day-btn"><span>Vie</span><strong>19</strong></div>
+                        <div class="day-btn"><span>Sab</span><strong>20</strong></div>
+                    </div>
+                </div>
+                <div class="available-classes grid gap-md" id="booking-classes-container">
+                    <p class="text-center p-lg text-muted">Cargando clases disponibles...</p>
+                </div>
+            </section>
+            <!-- Profile/Membership View -->
+            <section id="profile-view" class="view">
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Mi Membresía</h3>
+                </div>
+                <div class="card glass-card p-lg mb-lg">
+                    <div class="flex justify-between items-start mb-md">
+                        <div>
+                            <h4 class="text-primary text-xl" id="profile-plan-name">Plan Premium</h4>
+                            <p class="text-muted text-sm" id="profile-clases-restantes">8 Clases / Mes</p>
+                        </div>
+                        <span class="badge badge-success" id="profile-status-badge">Activo</span>
+                    </div>
+                    <div class="mb-lg">
+                        <p class="text-xs text-muted uppercase font-700 mb-xs">Próximo Cobro</p>
+                        <p class="text-lg font-600" id="profile-vencimiento-date">05 de Marzo, 2024</p>
+                    </div>
+                    <button class="btn btn-primary w-full" id="renew-btn">Renovar con TUU</button>
+                    <p class="text-center text-xs text-muted mt-sm">Pago seguro procesado por tuu.cl</p>
+                </div>
+
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Configuración</h3>
+                </div>
+                <div class="grid gap-md">
+                    <button class="btn btn-secondary w-full justify-start">Notificaciones</button>
+                    <button class="btn btn-secondary w-full justify-start">Método de Pago</button>
+                    <button class="btn btn-error w-full mt-lg">Cerrar Sesión</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="app-nav">
+            <a href="#home" class="nav-btn active" data-view="home-view">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                    </path>
+                </svg>
+                <span>Inicio</span>
+            </a>
+            <a href="#booking" class="nav-btn" data-view="booking-view">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                <span>Agendar</span>
+            </a>
+            <a href="#progress" class="nav-btn" data-view="progress-view">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                    </path>
+                </svg>
+                <span>Progreso</span>
+            </a>
+            <a href="#profile" class="nav-btn" data-view="profile-view">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span>Perfil</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../script.js"></script>
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+
+    <script src="client.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js');
+            });
+        }
+    </script>
+</body>
+
+</html>

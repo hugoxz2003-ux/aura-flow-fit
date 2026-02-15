@@ -1,0 +1,482 @@
+// Dashboard JavaScript
+
+// Data state
+let dashboardData = {
+    members: [],
+    leads: [], // Still using dummy for now
+    finances: [],
+    classes: []
+};
+
+// Fetch real data from Supabase
+async function fetchDashboardData() {
+    try {
+        const { data: members, error } = await supabase
+            .from('socios')
+            .select('*');
+
+        if (error) throw error;
+        dashboardData.members = members;
+
+        // Also fetch classes
+        const { data: classes, error: errorClasses } = await supabase
+            .from('clases')
+            .select('*');
+
+        if (errorClasses) throw errorClasses;
+        dashboardData.classes = classes;
+
+        // Fetch leads
+        const { data: leads } = await supabase.from('leads').select('*');
+        if (leads) dashboardData.leads = leads;
+
+        console.log('Real data fetched from Supabase:', dashboardData);
+
+        // Refresh active section if it's currently showing members or classes
+        const activeSection = document.querySelector('.nav-item.active');
+        if (activeSection) {
+            const sectionTarget = activeSection.getAttribute('href').substring(1);
+            if (['dashboard', 'members', 'calendar'].includes(sectionTarget)) {
+                showSection(sectionTarget);
+            }
+        }
+    } catch (err) {
+        console.error('Error fetching data from Supabase:', err);
+    }
+}
+
+// Keep DUMMY for modules not yet connected
+const DUMMY_DATA = {
+    leads: [
+        { id: 1, name: 'Juan Pérez', email: 'juan@prospecto.cl', phone: '+56912345678', source: 'Instagram', status: 'Nuevo' },
+        { id: 2, name: 'Clara Soto', email: 'clara@prospecto.cl', phone: '+56987654321', source: 'Web', status: 'Contactado' },
+        { id: 3, name: 'Diego Ríos', email: 'diego@prospecto.cl', phone: '+56955566677', source: 'Recomendación', status: 'Interesado' }
+    ],
+    finances: [
+        { id: 1, concept: 'Membresía María G.', amount: 65000, type: 'Ingreso', date: '2024-02-15' },
+        { id: 2, concept: 'Pago Instructor Carlos', amount: -400000, type: 'Egreso', date: '2024-02-14' },
+        { id: 3, concept: 'Venta Agua Mineral', amount: 1500, type: 'Ingreso', date: '2024-02-14' }
+    ]
+};
+
+// Initialize charts when DOM is loaded
+document.addEventListener('DOMContentLoaded', function () {
+    initializeCharts();
+    setupEventListeners();
+    fetchDashboardData();
+    // Start at Home
+    showSection('dashboard');
+});
+
+function initializeCharts() {
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                datasets: [
+                    {
+                        label: 'Ingresos',
+                        data: [6.5, 7.2, 7.8, 8.1, 8.5, 8.9, 9.2, 8.7, 9.0, 9.5, 9.8, 9.2],
+                        backgroundColor: 'rgba(6, 182, 212, 0.8)',
+                        borderColor: '#06B6D4',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    },
+                    {
+                        label: 'Objetivo',
+                        data: [8, 8, 8.5, 8.5, 9, 9, 9.5, 9.5, 10, 10, 10.5, 10.5],
+                        type: 'line',
+                        borderColor: '#22C55E',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.4,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#D4D4D8',
+                            font: { family: 'Inter', size: 12 },
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#27272A',
+                        titleColor: '#FAFAFA',
+                        bodyColor: '#D4D4D8',
+                        borderColor: 'rgba(6, 182, 212, 0.2)',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': $' + context.parsed.y + 'M';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                        ticks: {
+                            color: '#A1A1AA',
+                            font: { family: 'Inter', size: 11 },
+                            callback: function (value) { return '$' + value + 'M'; }
+                        }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { color: '#A1A1AA', font: { family: 'Inter', size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // Occupancy Donut Chart
+    const occupancyCtx = document.getElementById('occupancyChart');
+    if (occupancyCtx) {
+        new Chart(occupancyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Reformer', 'Personal', 'Grupal'],
+                datasets: [{
+                    data: [65, 25, 10],
+                    backgroundColor: ['#06B6D4', '#22C55E', '#F59E0B'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#D4D4D8',
+                            font: { family: 'Inter', size: 12 },
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function setupEventListeners() {
+    // Navigation
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const sectionTarget = this.getAttribute('href').substring(1);
+            showSection(sectionTarget);
+
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            console.log('Searching for:', searchTerm);
+        });
+    }
+
+    // Mobile sidebar toggle - Added specific ID or click handler
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.getElementById('mobile-menu-toggle') || document.querySelector('.sidebar-header'); // Sidebar header as backup toggle
+
+    if (sidebar) {
+        // Toggle when clicking header (for mobile simulation)
+        sidebar.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && e.target.closest('.sidebar-header')) {
+                sidebar.classList.toggle('open');
+            }
+        });
+    }
+
+    // Check-in Buttons
+    document.addEventListener('click', async (e) => {
+        if (e.target.matches('.btn-primary.btn-sm') && e.target.textContent === 'Check-in') {
+            const row = e.target.closest('tr');
+            const classTime = row.cells[0].textContent;
+            const className = row.cells[1].textContent;
+
+            // In a real app, we'd need the class ID and socio ID.
+            // For now, we'll simulate the update on the first class found in dashboardData.classes
+            const classObj = dashboardData.classes.find(c => c.nombre === className && c.horario.startsWith(classTime));
+
+            if (confirm(`¿Registrar asistencia para ${className}?`)) {
+                try {
+                    e.target.textContent = 'Procesando...';
+
+                    // Here you would typically link this to a 'reservas' record.
+                    // For demo, we just show the UI success.
+                    setTimeout(() => {
+                        e.target.textContent = 'Registrado ✅';
+                        e.target.classList.replace('btn-primary', 'btn-success');
+                        e.target.style.pointerEvents = 'none';
+                    }, 500);
+                } catch (err) {
+                    console.error('Check-in error:', err);
+                    e.target.textContent = 'Error';
+                }
+            }
+        }
+
+        // New Member Button
+        if (e.target.matches('.btn-primary.btn-sm') && e.target.textContent === '+ Nuevo Socio') {
+            const nombre = prompt('Nombre del nuevo socio:');
+            const email = prompt('Email del nuevo socio:');
+
+            if (nombre && email) {
+                try {
+                    const { error } = await supabase
+                        .from('socios')
+                        .insert([{ nombre, email, plan: 'Plan Premium', estado: 'Activo', clases_restantes: 8 }]);
+
+                    if (error) throw error;
+                    alert('Socio registrado con éxito');
+                    fetchDashboardData(); // Refresh list
+                } catch (err) {
+                    alert('Error al registrar socio: ' + err.message);
+                }
+            }
+        }
+    });
+}
+
+function showSection(sectionId) {
+    const mainContent = document.querySelector('.main-content');
+    const pageTitle = document.querySelector('.page-title');
+    const kpiGrid = document.querySelector('.kpi-grid');
+    const chartsRow = document.querySelector('.charts-row');
+    const alertsSection = document.querySelector('.alerts-section');
+    const todayClasses = document.querySelector('.today-classes-section');
+
+    // Remove any existing dynamic content
+    const existingDynamic = document.getElementById('dynamic-content');
+    if (existingDynamic) existingDynamic.remove();
+
+    if (sectionId === 'dashboard') {
+        kpiGrid.style.display = 'grid';
+        chartsRow.style.display = 'grid';
+        alertsSection.style.display = 'block';
+        todayClasses.style.display = 'block';
+        pageTitle.textContent = 'Dashboard';
+        renderTodayClasses();
+        updateKPIs();
+        return;
+    }
+
+    // ... other functions ...
+
+    function renderTodayClasses() {
+        const tbody = document.getElementById('today-classes-body');
+        if (!tbody) return;
+
+        if (dashboardData.classes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center p-lg">No hay clases programadas para hoy.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = dashboardData.classes.map(c => {
+            const percent = Math.round((c.cupos_ocupados / c.cupos_max) * 100);
+            return `
+            <tr>
+                <td>${c.horario.substring(0, 5)}</td>
+                <td>${c.nombre}</td>
+                <td>${c.instructor}</td>
+                <td>
+                    <div class="occupancy-bar">
+                        <div class="occupancy-fill" style="width: ${percent}%"></div>
+                        <span>${c.cupos_ocupados}/${c.cupos_max}</span>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-primary btn-sm">Check-in</button>
+                </td>
+            </tr>
+        `;
+        }).join('');
+    }
+
+    function updateKPIs() {
+        // Update Active Members KPI
+        const activeMembers = dashboardData.members.filter(m => m.estado === 'Activo').length;
+        const membersKpi = document.querySelector('.kpi-card:nth-child(2) .kpi-value');
+        if (membersKpi) membersKpi.textContent = activeMembers;
+    }
+
+    // Hide dashboard elements
+    kpiGrid.style.display = 'none';
+    chartsRow.style.display = 'none';
+    alertsSection.style.display = 'none';
+    todayClasses.style.display = 'none';
+
+    // Create dynamic content area
+    const dynamicContent = document.createElement('div');
+    dynamicContent.id = 'dynamic-content';
+    mainContent.appendChild(dynamicContent);
+
+    switch (sectionId) {
+        case 'members':
+            pageTitle.textContent = 'Gestión de Socios';
+            renderMembers(dynamicContent);
+            break;
+        case 'leads':
+            pageTitle.textContent = 'Pipeline de Leads';
+            renderLeads(dynamicContent);
+            break;
+        case 'finances':
+            pageTitle.textContent = 'Finanzas y Pagos';
+            renderFinances(dynamicContent);
+            break;
+        case 'calendar':
+            pageTitle.textContent = 'Calendario de Clases';
+            renderCalendar(dynamicContent);
+            break;
+        default:
+            pageTitle.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+            dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
+                <p class="text-xl mb-md">Módulo ${sectionId} en construcción</p>
+                <div class="spinner"></div>
+            </div>`;
+    }
+}
+
+function renderMembers(container) {
+    container.innerHTML = `
+        <div class="glass-card">
+            <div class="p-md flex justify-between items-center border-b border-white-05">
+                <h3>Lista de Socios</h3>
+                <button class="btn btn-primary btn-sm">+ Nuevo Socio</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>Plan</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dashboardData.members.length === 0 ? '<tr><td colspan="4" class="text-center p-lg">Cargando socios...</td></tr>' :
+            dashboardData.members.map(m => `
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-sm">
+                                    <img src="https://ui-avatars.com/api/?name=${m.nombre}&background=random" class="user-avatar">
+                                    <span>${m.nombre}</span>
+                                </div>
+                            </td>
+                            <td>${m.plan}</td>
+                            <td>${m.fecha_vencimiento}</td>
+                            <td><span class="badge badge-${m.estado === 'Activo' ? 'success' : m.estado === 'Vencido' ? 'error' : 'warning'}">${m.estado}</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderLeads(container) {
+    const statuses = ['Nuevo', 'Contactado', 'Interesado', 'Convertido'];
+    container.innerHTML = `
+        <div class="grid grid-cols-4 gap-lg">
+            ${statuses.map(s => `
+                <div class="kanban-col">
+                    <h4 class="mb-lg uppercase text-xs text-muted font-700">${s}</h4>
+                    ${dashboardData.leads.filter(l => l.status === s || (s === 'Nuevo' && l.status === 'Nuevo')).length === 0
+            ? '<p class="text-xs text-muted p-md">Sin leads</p>'
+            : dashboardData.leads.filter(l => l.status === s || (s === 'Nuevo' && l.status === 'Nuevo')).map(l => `
+                        <div class="card mb-md p-md hover-glow">
+                            <p class="font-600">${l.name || l.nombre}</p>
+                            <p class="text-xs text-muted mb-sm">${l.source || 'Directo'}</p>
+                            <span class="badge badge-info">${l.phone || l.email}</span>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-secondary btn-sm w-full">+ Añadir</button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function renderFinances(container) {
+    container.innerHTML = `
+        <div class="grid grid-cols-3 gap-lg mb-lg">
+            <div class="card p-lg text-center"><p class="text-muted text-xs">Ingresos</p><h3 class="text-success">$9,245,000</h3></div>
+            <div class="card p-lg text-center"><p class="text-muted text-xs">Egresos</p><h3 class="text-error">$4,120,000</h3></div>
+            <div class="card p-lg text-center"><p class="text-muted text-xs">Utilidad</p><h3 class="text-primary">$5,125,000</h3></div>
+        </div>
+        <div class="glass-card">
+            <table>
+                <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th></tr></thead>
+                <tbody>
+                    ${DUMMY_DATA.finances.map(f => `
+                        <tr>
+                            <td>${f.date}</td>
+                            <td>${f.concept}</td>
+                            <td class="${f.type === 'Ingreso' ? 'text-success' : 'text-error'} font-700">${f.amount > 0 ? '+' : ''}${formatCurrency(f.amount)}</td>
+                            <td><span class="badge badge-success">Pagado</span></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderCalendar(container) {
+    container.innerHTML = `
+        <div class="glass-card p-xl text-center">
+            <h3 class="mb-md">📆 Calendario de Clases</h3>
+            <p class="text-muted mb-lg">Visualización semanal de disponibilidad y reservas.</p>
+            <div class="grid grid-cols-7 gap-sm">
+                ${['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'].map(d => `
+                    <div class="card p-sm bg-tertiary">
+                        <p class="text-xs font-700">${d}</p>
+                        <div class="mt-md flex flex-col gap-xs">
+                            <div class="badge badge-success" style="font-size: 8px">9:00 Reformer</div>
+                            <div class="badge badge-info" style="font-size: 8px">11:00 Personal</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(amount);
+}
+
+function formatDate(date) {
+    return new Intl.DateTimeFormat('es-CL', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+}
+
+window.dashboardUtils = { formatCurrency, formatDate };

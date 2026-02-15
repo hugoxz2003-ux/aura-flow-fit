@@ -1,0 +1,241 @@
+/* Client App Specific Styles (Mobile First) */
+
+:root {
+    --header-height: 80px;
+    --nav-height: 70px;
+}
+
+body {
+    background: var(--bg-primary);
+    overflow: hidden;
+    /* Prevent body scroll, use app-main scroll */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 500px;
+    margin: 0 auto;
+    background: var(--bg-primary);
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+/* === HEADER === */
+.app-header {
+    height: var(--header-height);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(24, 24, 27, 0.8);
+    backdrop-filter: blur(20px);
+    z-index: 10;
+    position: sticky;
+    top: 0;
+}
+
+.greeting {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.app-title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+/* === MAIN === */
+.app-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md) var(--spacing-lg) calc(var(--nav-height) + var(--spacing-lg));
+    -webkit-overflow-scrolling: touch;
+}
+
+.view {
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === SUMMARY CARD === */
+.summary-card {
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(24, 24, 27, 0.4));
+}
+
+.card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.next-class .label {
+    color: var(--primary);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.next-class .value {
+    margin: var(--spacing-xs) 0;
+}
+
+.next-class .subtitle {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.class-countdown {
+    position: relative;
+    width: 65px;
+    height: 65px;
+}
+
+.circular-progress {
+    width: 100%;
+    height: 100%;
+}
+
+.countdown-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+}
+
+/* === CALENDAR STRIP === */
+.calendar-strip {
+    overflow-x: auto;
+    padding-bottom: var(--spacing-sm);
+    scrollbar-width: none;
+}
+
+.calendar-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.days-container {
+    padding: 4px;
+}
+
+.day-btn {
+    flex: 0 0 65px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.day-btn.active {
+    background: var(--primary);
+    box-shadow: var(--shadow-glow);
+}
+
+.day-btn span {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.day-btn.active span {
+    color: white;
+}
+
+.day-btn strong {
+    font-size: var(--font-size-lg);
+}
+
+/* === LIST ITEMS === */
+.class-card-item {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+}
+
+.class-card-item .time {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.class-card-item .type {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+}
+
+/* === BOTTOM NAV === */
+.app-nav {
+    height: var(--nav-height);
+    background: rgba(39, 39, 42, 0.95);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    z-index: 10;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 10px;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.nav-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.nav-btn.active {
+    color: var(--primary);
+}
+
+.nav-btn.active svg {
+    filter: drop-shadow(0 0 5px var(--primary));
+}
+
+/* iOS Safe Areas */
+@supports (padding: env(safe-area-inset-bottom)) {
+    .app-nav {
+        height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+    }
+}
