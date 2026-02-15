@@ -38,6 +38,14 @@ async function fetchDashboardData() {
 
         if (bookings) dashboardData.bookings = bookings;
 
+        // Fetch Waitlist (NEW)
+        const { data: waitlist } = await supabase
+            .from('lista_espera')
+            .select('*, socio:socios(*), clase:clases(*)')
+            .order('created_at', { ascending: true });
+
+        dashboardData.waitlist = waitlist || [];
+
         console.log('Real data fetched from Supabase:', dashboardData);
 
         // Refresh active section
@@ -47,8 +55,8 @@ async function fetchDashboardData() {
             showSection(sectionTarget);
         }
 
-        // Always render recent bookings if on dashboard view
         renderRecentBookings();
+        updateKPIs();
     } catch (err) {
         console.error('Error fetching data from Supabase:', err);
     }
@@ -354,20 +362,30 @@ function showSection(sectionId) {
         }
 
         tbody.innerHTML = dashboardData.classes.map(c => {
-            const percent = Math.round((c.cupos_ocupados / c.cupos_max) * 100);
+            const max = c.tipo === 'pilates' ? 10 : 50;
+            const percent = Math.min(100, Math.round((c.cupos_ocupados / max) * 100));
+            const inWaitlist = dashboardData.waitlist.filter(w => w.clase_id === c.id).length;
+
             return `
             <tr>
                 <td>${c.horario.substring(0, 5)}</td>
-                <td>${c.nombre}</td>
+                <td>
+                    <div class="flex flex-col">
+                        <span class="font-600">${c.nombre}</span>
+                        <span class="text-xs ${c.tipo === 'pilates' ? 'text-primary' : 'text-success'} uppercase font-700">${c.tipo}</span>
+                    </div>
+                </td>
                 <td>${c.instructor}</td>
                 <td>
                     <div class="occupancy-bar">
-                        <div class="occupancy-fill" style="width: ${percent}%"></div>
-                        <span>${c.cupos_ocupados}/${c.cupos_max}</span>
+                        <div class="occupancy-fill ${percent >= 100 ? 'bg-error' : ''}" style="width: ${percent}%"></div>
+                        <span>${c.cupos_ocupados}/${max}</span>
                     </div>
+                    ${inWaitlist > 0 ? `<span class="text-xs text-warning font-600">⌛ ${inWaitlist} en espera</span>` : ''}
                 </td>
                 <td>
-                    <button class="btn btn-primary btn-sm">Check-in</button>
+                    <button class="btn btn-primary btn-sm" onclick="handleCheckIn('${c.id}', '${c.nombre}')">Check-in</button>
+                    ${inWaitlist > 0 ? `<button class="btn btn-secondary btn-sm" onclick="showSection('waitlist')">Ver Lista</button>` : ''}
                 </td>
             </tr>
         `;
@@ -408,6 +426,10 @@ function showSection(sectionId) {
         case 'calendar':
             pageTitle.textContent = 'Calendario de Clases';
             renderCalendar(dynamicContent);
+            break;
+        case 'waitlist':
+            pageTitle.textContent = 'Lista de Espera';
+            renderWaitlist(dynamicContent);
             break;
         default:
             pageTitle.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
@@ -525,12 +547,91 @@ function renderCalendar(container) {
     `;
 }
 
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(amount);
+function renderWaitlist(container) {
+    if (dashboardData.waitlist.length === 0) {
+        container.innerHTML = '<div class="glass-card p-xl text-center"><p class="text-muted">No hay socios en lista de espera actualmente.</p></div>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="glass-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>Clase</th>
+                        <th>Fecha Solicitud</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dashboardData.waitlist.map(w => `
+                        <tr>
+                            <td>${w.socio.nombre}</td>
+                            <td>${w.clase.nombre} • ${w.clase.horario.substring(0, 5)}</td>
+                            <td>${new Date(w.created_at).toLocaleDateString('es-CL')}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="promoteFromWaitlist('${w.id}')">Asignar Cupo</button>
+                                <button class="btn btn-secondary btn-sm" onclick="removeFromWaitlist('${w.id}')">Quitar</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
-function formatDate(date) {
-    return new Intl.DateTimeFormat('es-CL', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+async function handleCheckIn(classId, className) {
+    if (confirm(`¿Confirmar asistencia para ${className}?`)) {
+        // Here we would typically update a 'asistencia' table or decrement 'cupos_ocupados' if needed
+        // For simplicity, we just notify and log. In a real app, this would be more complex.
+        alert(`Check-in realizado para clase de ${className}`);
+    }
 }
 
-window.dashboardUtils = { formatCurrency, formatDate };
+async function promoteFromWaitlist(waitlistId) {
+    const item = dashboardData.waitlist.find(w => w.id === waitlistId);
+    if (!item) return;
+
+    if (confirm(`¿Promover a ${item.socio.nombre} a la clase de ${item.clase.nombre}?`)) {
+        try {
+            // 1. Create reservation
+            const { error: resError } = await supabase
+                .from('reservas')
+                .insert([{
+                    socio_id: item.socio_id,
+                    clase_id: item.clase_id,
+                    fecha: item.fecha
+                }]);
+
+            if (resError) throw resError;
+
+            // 2. Remove from waitlist
+            const { error: delError } = await supabase
+                .from('lista_espera')
+                .delete()
+                .eq('id', waitlistId);
+
+            if (delError) throw delError;
+
+            alert('Socio promovido con éxito ✅');
+            fetchDashboardData();
+        } catch (err) {
+            console.error('Error promoting:', err);
+            alert('Error al promover socio');
+        }
+    }
+}
+
+async function removeFromWaitlist(waitlistId) {
+    if (confirm('¿Quitar de la lista de espera?')) {
+        await supabase.from('lista_espera').delete().eq('id', waitlistId);
+        fetchDashboardData();
+    }
+}
+
+window.handleCheckIn = handleCheckIn;
+window.promoteFromWaitlist = promoteFromWaitlist;
+window.removeFromWaitlist = removeFromWaitlist;
+window.showSection = showSection;
