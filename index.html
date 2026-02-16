@@ -17,6 +17,34 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Aggressive Ghost Menu Removal */
+        @media (min-width: 769px) {
+
+            .mobile-menu-toggle,
+            .mobile-menu,
+            #mobile-nav-ghost {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                position: absolute !important;
+                left: -9999px !important;
+            }
+        }
+
+        /* Layout Fixes */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+            gap: 32px !important;
+        }
+
+        .about-image-wrapper {
+            height: auto !important;
+            min-height: 400px;
+        }
+    </style>
 </head>
 
 <body>
@@ -26,11 +54,8 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container nav-container">
-            <a href="#" class="logo">
-                <div class="logo-placeholder">
-                    <span class="logo-icon">✨</span>
-                    <span class="logo-text">AURA FLOW FIT</span>
-                </div>
+            <a href="index.html" class="logo">
+                <span class="logo-text">AURA FLOW FIT</span>
             </a>
 
             <div class="nav-links">
@@ -40,6 +65,7 @@
                     style="color: var(--primary-500); font-weight: 700;">App Socios</a>
                 <a href="dashboard/index.html" class="nav-link admin-link">Admin</a>
             </div>
+
 
             <button class="mobile-menu-toggle" aria-label="Menu">
                 <span></span>
@@ -81,7 +107,7 @@
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number" data-target="500">0</span>
-                        <span class="stat-label">Miembros Felices</span>
+                        <span class="stat-label">Ser Socio Fundador</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
@@ -95,7 +121,7 @@
                 <div class="sphere-container">
                     <div class="sphere">
                         <div class="sphere-inner"
-                            style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1518611012118-2969c6390128?auto=format&fit=crop&q=80&w=800') center/cover;">
+                            style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/hero-pilates.jpg') center/cover;">
                         </div>
                     </div>
                 </div>
@@ -108,10 +134,22 @@
         <div class="container">
             <p class="section-label-center">CONFÍAN EN NOSOTROS</p>
             <div class="logos-grid">
-                <div class="logo-item">PREMIUM<br>WELLNESS</div>
-                <div class="logo-item">ELITE<br>TRAINING</div>
-                <div class="logo-item">LUXURY<br>LIFESTYLE</div>
-                <div class="logo-item">EXCLUSIVE<br>MEMBERS</div>
+                <div class="logo-item glass-card p-sm">
+                    <img src="https://images.unsplash.com/photo-1599305090748-364e79f1f6d9?auto=format&fit=crop&q=80&w=200"
+                        alt="Partner 1" style="height: 35px; opacity: 0.8; filter: grayscale(1) invert(1);">
+                </div>
+                <div class="logo-item glass-card p-sm">
+                    <img src="https://images.unsplash.com/photo-1599305090748-364e79f1f6d9?auto=format&fit=crop&q=80&w=200"
+                        alt="Partner 2" style="height: 35px; opacity: 0.8; filter: grayscale(1) invert(1);">
+                </div>
+                <div class="logo-item glass-card p-sm">
+                    <img src="https://images.unsplash.com/photo-1599305090748-364e79f1f6d9?auto=format&fit=crop&q=80&w=200"
+                        alt="Partner 3" style="height: 35px; opacity: 0.8; filter: grayscale(1) invert(1);">
+                </div>
+                <div class="logo-item glass-card p-sm">
+                    <img src="https://images.unsplash.com/photo-1599305090748-364e79f1f6d9?auto=format&fit=crop&q=80&w=200"
+                        alt="Partner 4" style="height: 35px; opacity: 0.8; filter: grayscale(1) invert(1);">
+                </div>
             </div>
         </div>
     </section>
@@ -125,91 +163,70 @@
             </div>
 
             <div class="services-grid">
-                <!-- Service 1 -->
-                <div class="service-card-flip">
+                <!-- Service 1: Pilates -->
+                <div class="service-card-flip reveal">
                     <div class="service-card-inner">
                         <div class="service-card-front"
-                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1518459031867-a89b944bffe4?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/reformer-final.jpg') center/cover;">
                             <div class="service-overlay">
                                 <h3 class="service-title-front">Pilates Reformer</h3>
                             </div>
                         </div>
                         <div class="service-card-back glass-card">
                             <h3 class="service-title-back">Pilates Reformer</h3>
-                            <p class="service-description">
-                                Equipamiento de última generación para fortalecer tu núcleo, mejorar la postura y
-                                tonificar.
+                            <p class="service-description">Equipamiento de última generación para fortalecer tu núcleo.
                             </p>
-                            <div class="service-features">
-                                <span class="feature-tag">Core</span>
-                                <span class="feature-tag">Flexibilidad</span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Service 2 -->
-                <div class="service-card-flip">
+                <!-- Service 2: Strength -->
+                <div class="service-card-flip reveal">
                     <div class="service-card-inner">
                         <div class="service-card-front"
-                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/gym-final.jpg') center/cover;">
                             <div class="service-overlay">
-                                <h3 class="service-title-front">Personal Training</h3>
+                                <h3 class="service-title-front">Entrenamiento Musculación</h3>
                             </div>
                         </div>
                         <div class="service-card-back glass-card">
-                            <h3 class="service-title-back">Personal Training</h3>
-                            <p class="service-description">
-                                Entrenadores dedicados a tus objetivos específicos en un ambiente privado y exclusivo.
-                            </p>
-                            <div class="service-features">
-                                <span class="feature-tag">1 a 1</span>
-                                <span class="feature-tag">Resultados</span>
-                            </div>
+                            <h3 class="service-title-back">Musculación</h3>
+                            <p class="service-description">Zona de entrenamiento de fuerza con equipamiento de alta
+                                gama.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Service 3 -->
-                <div class="service-card-flip">
+                <!-- Service 3: Groups -->
+                <div class="service-card-flip reveal">
                     <div class="service-card-inner">
                         <div class="service-card-front"
-                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1544126592-807daf21565c?auto=format&fit=crop&q=80&w=400') center/cover;">
-                            <div class="service-overlay">
-                                <h3 class="service-title-front">Wellness & Recovery</h3>
-                            </div>
-                        </div>
-                        <div class="service-card-back glass-card">
-                            <h3 class="service-title-back">Wellness & Recovery</h3>
-                            <p class="service-description">
-                                Zonas de recuperación y relajación post-entrenamiento para un cuidado integral.
-                            </p>
-                            <div class="service-features">
-                                <span class="feature-tag">Relax</span>
-                                <span class="feature-tag">Recuperación</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Service 4 -->
-                <div class="service-card-flip">
-                    <div class="service-card-inner">
-                        <div class="service-card-front"
-                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1522898467493-49fe37af7ff5?auto=format&fit=crop&q=80&w=400') center/cover;">
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/showcase-studio-v7.jpg') center/cover;">
                             <div class="service-overlay">
                                 <h3 class="service-title-front">Grupos Exclusivos</h3>
                             </div>
                         </div>
                         <div class="service-card-back glass-card">
-                            <h3 class="service-title-back">Grupos Exclusivos</h3>
-                            <p class="service-description">
-                                Clases reducidas para garantizar la atención personalizada y la máxima comodidad.
-                            </p>
-                            <div class="service-features">
-                                <span class="feature-tag">Intimo</span>
-                                <span class="feature-tag">Comunidad</span>
+                            <h3 class="service-title-back">Clases Grupales</h3>
+                            <p class="service-description">Sesiones personalizadas en grupos reducidos para máxima
+                                atención.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 4: Wellness -->
+                <div class="service-card-flip reveal">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/bg-texture.jpg') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Wellness & Recovery</h3>
                             </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Recuperación</h3>
+                            <p class="service-description">Espacios de relajación y cuidado integral post-entrenamiento.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -247,7 +264,7 @@
                 </div>
                 <div class="experience-visual">
                     <div class="glass-card showcase-card"
-                        style="background: url('https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&q=80&w=800') center/cover;">
+                        style="background: url('images/showcase-studio-v7.jpg') center/cover;">
                         <div class="showcase-info">
                             <span class="showcase-label">Espacios Diseñados</span>
                             <h3>Ambiente Inspirador</h3>
@@ -262,8 +279,8 @@
     <section id="nosotros" class="section about">
         <div class="container about-container">
             <div class="about-image-wrapper">
-                <img src="https://images.unsplash.com/photo-1599058917233-358042187382?auto=format&fit=crop&q=80&w=800"
-                    alt="Team Aura" class="about-image" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="images/hero-gym-dark.jpg" alt="Team Aura" class="about-image"
+                    style="width: 100%; height: auto; min-height: 500px; object-fit: cover; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: block;">
                 <div class="about-circle-decoration"></div>
             </div>
             <div class="about-content">
@@ -313,13 +330,13 @@
             </div>
             <div class="footer-links-group">
                 <h4>Contacto</h4>
-                <a href="#">contacto@auraflowfit.cl</a>
-                <a href="#">+56 9 1234 5678</a>
-                <a href="#">Escuela Militar, Las Condes</a>
+                <a href="mailto:hola@auraflowfit.cl">hola@auraflowfit.cl</a>
+                <a href="tel:+56912345678">+56 9 1234 5678</a>
+                <a href="https://maps.google.com" target="_blank">A una cuadra de Escuela Militar</a>
             </div>
             <div class="footer-social">
-                <a href="#" class="social-icon">IG</a>
-                <a href="#" class="social-icon">LI</a>
+                <a href="https://instagram.com/auraflowfit" target="_blank" class="social-icon">Instagram</a>
+                <a href="https://linkedin.com" target="_blank" class="social-icon">LinkedIn</a>
             </div>
         </div>
         <div class="footer-bottom">

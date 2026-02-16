@@ -89,6 +89,7 @@ h4,
 .text-gradient {
     background: linear-gradient(135deg, var(--primary-400), var(--primary-500));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
 }
@@ -228,6 +229,10 @@ h4,
     z-index: 2000;
 }
 
+.mobile-menu {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .nav-links {
         display: none;
@@ -245,6 +250,16 @@ h4,
     transition: 0.3s;
 }
 
+@media (min-width: 769px) {
+
+    .mobile-menu-toggle,
+    .mobile-menu {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
 /* =========================================
    HERO SECTION
    ========================================= */
@@ -255,9 +270,10 @@ h4,
     align-items: center;
     position: relative;
     overflow: hidden;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1600') center/cover;
 }
 
-/* Background Gradients */
+/* Background Gradients Blur */
 .hero::before {
     content: '';
     position: absolute;
@@ -265,9 +281,9 @@ h4,
     left: -10%;
     width: 60%;
     height: 60%;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, transparent 60%);
     filter: blur(80px);
-    z-index: -1;
+    z-index: 1;
 }
 
 .hero-container {
@@ -374,7 +390,7 @@ h4,
 .sphere-inner {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.3) 100%);
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://images.unsplash.com/photo-1571731956672-f2b94d7dd0cb?auto=format&fit=crop&q=80&w=800') center/cover;
     border-radius: 50%;
     border: 1px solid rgba(6, 182, 212, 0.4);
     box-shadow:
@@ -420,7 +436,7 @@ h4,
     letter-spacing: 0.2em;
     color: var(--text-tertiary);
     margin-bottom: 24px;
-    uppercase: true;
+    text-transform: uppercase;
 }
 
 .logos-grid {
