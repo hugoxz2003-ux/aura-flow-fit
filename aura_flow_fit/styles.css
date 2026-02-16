@@ -89,6 +89,7 @@ h4,
 .text-gradient {
     background: linear-gradient(135deg, var(--primary-400), var(--primary-500));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
 }
@@ -254,6 +255,8 @@ h4,
     .mobile-menu-toggle,
     .mobile-menu {
         display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
 }
 
@@ -433,7 +436,7 @@ h4,
     letter-spacing: 0.2em;
     color: var(--text-tertiary);
     margin-bottom: 24px;
-    uppercase: true;
+    text-transform: uppercase;
 }
 
 .logos-grid {
