@@ -260,6 +260,20 @@ h4,
     }
 }
 
+/* Global Cleanup: Hide internal system links */
+.nav-link[href*="client-app"],
+.nav-link[href*="dashboard"],
+.mobile-link[href*="client-app"],
+.mobile-link[href*="dashboard"],
+.admin-link,
+footer a[href*="client-app"],
+footer a[href*="dashboard"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* =========================================
    HERO SECTION
    ========================================= */
