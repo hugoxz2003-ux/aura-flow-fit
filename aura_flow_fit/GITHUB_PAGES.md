@@ -74,8 +74,26 @@ Cuando hagas cambios:
 
 ---
 
-## Dominio Personalizado (Opcional)
-Si quieres usar `www.auraflowfit.cl` en vez de `.github.io`:
-1. Compra el dominio en NIC Chile o similar
-2. En GitHub Pages Settings → "Custom domain"
-3. Configura los DNS según las instrucciones de GitHub
+## Dominio Personalizado (Tu Marca)
+Si quieres usar `www.auraflowfit.cl` en vez de la URL de GitHub:
+
+### 1. En NIC Chile (o tu proveedor)
+Debes configurar los **Registros DNS**. Busca la sección de "Configuración de DNS" o "Registros" y agrega lo siguiente:
+
+**A Records (Para auraflowfit.cl):**
+Crea 4 registros tipo **A** que apunten a estas IPs:
+*   `185.199.108.153`
+*   `185.199.109.153`
+*   `185.199.110.153`
+*   `185.199.111.153`
+
+**CNAME Record (Para www.auraflowfit.cl):**
+Crea un registro **CNAME** con nombre `www` y valor `hugoxz2003-ux.github.io`.
+
+### 2. En GitHub
+1. Ve a **Settings** -> **Pages**.
+2. En **Custom domain**, escribe `www.auraflowfit.cl` y dale a **Save**.
+3. Espera a que la validación termine y marca **"Enforce HTTPS"**.
+
+---
+¡Felicidades! Ahora tu marca tiene presencia profesional en la web.
