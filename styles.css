@@ -284,7 +284,7 @@ footer a[href*="dashboard"] {
     align-items: center;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1600') center/cover;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1591117207239-788cd8cd17ba?auto=format&fit=crop&q=80&w=1600') center/cover;
 }
 
 /* Background Gradients Blur */
