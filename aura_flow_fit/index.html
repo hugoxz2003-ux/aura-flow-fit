@@ -82,7 +82,25 @@
             filter: grayscale(20%) contrast(110%);
         }
 
-        /* Layout Fixes */
+        .neon-ring-svg {
+            position: absolute;
+            inset: -10px;
+            width: calc(100% + 20px);
+            height: calc(100% + 20px);
+            animation: rotate-ring 15s linear infinite;
+            filter: drop-shadow(0 0 10px #ff2d75);
+        }
+
+        @keyframes rotate-ring {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         .services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
@@ -164,11 +182,23 @@
             <div class="hero-visual">
                 <div class="sphere-container">
                     <div class="sphere">
+                        <!-- Neon Ring SVG -->
+                        <svg class="neon-ring-svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="none" stroke="url(#neonGradient)" stroke-width="2" />
+                            <defs>
+                                <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ff2d75; stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#06B6D4; stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#ff2d75; stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
                         <div class="sphere-inner"
-                            style="background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1518611012118-2960c8badce8?auto=format&fit=crop&q=80&w=800') center/cover;">
+                            style="background: url('https://images.unsplash.com/photo-1518611012118-2960c8badce8?auto=format&fit=crop&q=80&w=800') center/cover;">
                         </div>
                     </div>
                 </div>
+                <p style="font-size: 10px; opacity: 0.1; position: absolute; bottom: -20px;">v2.0-clean-deploy</p>
             </div>
         </div>
     </section>
