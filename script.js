@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Send to n8n Webhook
-                await fetch('https://auraflowfit.app.n8n.cloud/webhook/6539874a-c7e6-4e03-a964-0a5de374fdf5', {
+                await fetch('https://n8n.auraflow.cl/webhook/f98fa7cc-f925-4122-8356-9be896957297', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -172,3 +172,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
