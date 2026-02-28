@@ -7,10 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     menuToggle.addEventListener('click', () => {
         mobileMenu.classList.toggle('active');
-        // Animate burger icon (simple rotation or transform could be added here)
     });
 
-    // Close menu when clicking a link
     document.querySelectorAll('.mobile-link').forEach(link => {
         link.addEventListener('click', () => {
             mobileMenu.classList.remove('active');
@@ -37,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const updateCount = () => {
                 const count = +stat.innerText;
-
                 if (count < target) {
                     stat.innerText = Math.ceil(count + increment);
                     setTimeout(updateCount, 40);
@@ -58,43 +55,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                // Add reveal class for specific elements
                 if (entry.target.classList.contains('service-card-flip')) {
                     entry.target.classList.add('reveal');
                 }
-
-                // Trigger stats animation
                 if (entry.target.classList.contains('hero-stats') && !hasAnimatedStats) {
                     animateStats();
                     hasAnimatedStats = true;
                 }
-
-                // Generic reveal
                 entry.target.style.opacity = 1;
                 entry.target.style.transform = 'translateY(0)';
             }
         });
     }, observerOptions);
 
-    // Observe stats container
     const heroStats = document.querySelector('.hero-stats');
     if (heroStats) observer.observe(heroStats);
-
-    // Observe service cards
     const serviceCards = document.querySelectorAll('.service-card-flip');
     serviceCards.forEach(card => observer.observe(card));
 
-    // 5. Flip Card Touch Support for Mobile
+    // 5. Flip Card Touch Support
     const cards = document.querySelectorAll('.service-card-flip');
     cards.forEach(card => {
         card.addEventListener('click', () => {
-            // Toggle a class for mobile flip if hover isn't sufficient
-            // On desktop hover handles it via CSS
             card.classList.toggle('flipped');
         });
     });
 
-    // 6. Particles Background (Simple Implementation)
+    // 6. Particles Background
     const particleContainer = document.getElementById('particles-container');
     if (particleContainer) {
         for (let i = 0; i < 30; i++) {
@@ -113,55 +100,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 7. Form Submission to n8n
+    // 7. Form Submission to n8n (CORREGIDO)
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const submitBtn = contactForm.querySelector('button');
             const originalText = submitBtn.innerText;
 
-            // Loading State
             submitBtn.innerText = 'Enviando...';
             submitBtn.disabled = true;
             submitBtn.style.opacity = '0.7';
 
-            // Gather Data
             const formData = new FormData(contactForm);
             const data = Object.fromEntries(formData.entries());
-            // Add current timestamp
             data.timestamp = new Date().toISOString();
 
             try {
-                // Send to n8n Webhook
-                await fetch('https://auraflowfit.app.n8n.cloud/webhook/6539874a-c7e6-4e03-a964-0a5de374fdf5', {
+                // DIRECCIÓN CORRECTA DE TU PRODUCCIÓN
+                await fetch('https://n8n.auraflow.cl/webhook/f98fa7cc-f925-4122-8356-9be896957297', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
 
-                // Success Feedback
                 submitBtn.innerText = '¡Enviado con Éxito!';
-                submitBtn.style.background = 'var(--success, #22C55E)';
+                submitBtn.style.background = '#22C55E';
                 contactForm.reset();
 
                 setTimeout(() => {
                     submitBtn.innerText = originalText;
                     submitBtn.disabled = false;
                     submitBtn.style.opacity = '1';
-                    submitBtn.style.background = ''; // Revert to original gradient
+                    submitBtn.style.background = '';
                 }, 3000);
 
             } catch (error) {
                 console.error('Error envio:', error);
-                // Show specific error in button for debugging
-                submitBtn.innerText = 'Error: Ver Consola (F12)';
-                submitBtn.style.background = 'var(--warning, #F59E0B)';
-                alert("Error enviando datos: " + error.message + "\n\nNota: Si estás abriendo el archivo directamente desde tu carpeta (file://), los navegadores bloquean estas peticiones por seguridad (CORS). Necesitas un servidor local o subir la web.");
-
+                submitBtn.innerText = 'Error al enviar';
+                submitBtn.style.background = '#F59E0B';
                 setTimeout(() => {
                     submitBtn.innerText = originalText;
                     submitBtn.disabled = false;
@@ -172,3 +149,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
