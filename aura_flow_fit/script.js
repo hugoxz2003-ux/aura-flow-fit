@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitBtn.style.background = '';
                 }, 3000);
 
-            } catch (error) {
+           await fetch('https://n8n.auraflow.cl/webhook/f98fa7cc-f925-4122-8356-9be896957297', {
                 console.error('Error envio:', error);
                 submitBtn.innerText = 'Error al enviar';
                 submitBtn.style.background = '#F59E0B';
@@ -149,4 +149,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 
