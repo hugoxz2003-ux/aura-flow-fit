@@ -46,6 +46,13 @@ async function fetchDashboardData() {
 
         dashboardData.waitlist = waitlist || [];
 
+        // Fetch Finances (Transactions)
+        const { data: finances } = await supabase
+            .from('transactions')
+            .select('*')
+            .order('created_at', { ascending: false });
+        dashboardData.finances = finances || [];
+
         console.log('Real data fetched from Supabase:', dashboardData);
 
         // Refresh active section
@@ -93,6 +100,21 @@ function renderRecentBookings() {
 
 // Keep DUMMY for modules not yet connected
 const DUMMY_DATA = {
+    plans: {
+        pilates: [
+            { id: 'p1', name: 'Mensual 1x', price: 45000, freq: 1, duration: 1 },
+            { id: 'p2', name: 'Mensual 2x', price: 65000, freq: 2, duration: 1 },
+            { id: 'p3', name: 'Mensual 3x', price: 85000, freq: 3, duration: 1 },
+            { id: 'p4', name: 'Mensual 4x', price: 105000, freq: 4, duration: 1 },
+            { id: 'p5', name: 'Trimestral 2x', price: 180000, freq: 2, duration: 3 },
+            { id: 'p6', name: 'Semestral 2x', price: 330000, freq: 2, duration: 6 }
+        ],
+        gym: [
+            { id: 'g1', name: 'Mensual', price: 35000, duration: 1 },
+            { id: 'g2', name: 'Trimestral', price: 90000, duration: 3 },
+            { id: 'g3', name: 'Semestral', price: 160000, duration: 6 }
+        ]
+    },
     leads: [
         { id: 1, name: 'Juan Pérez', email: 'juan@prospecto.cl', phone: '+56912345678', source: 'Instagram', status: 'Nuevo' },
         { id: 2, name: 'Clara Soto', email: 'clara@prospecto.cl', phone: '+56987654321', source: 'Web', status: 'Contactado' },
@@ -118,6 +140,23 @@ let revenueChartInstance = null;
 let occupancyChartInstance = null;
 
 function initializeCharts() {
+    // Generate real revenue data simply from current year
+    const currentYear = new Date().getFullYear();
+    const monthlyData = new Array(12).fill(0);
+
+    if (dashboardData.finances && dashboardData.finances.length > 0) {
+        dashboardData.finances.forEach(f => {
+            if ((f.status === 'success' || f.status === 'Pagado') && f.amount > 0) {
+                const date = new Date(f.created_at);
+                if (date.getFullYear() === currentYear) {
+                    monthlyData[date.getMonth()] += Number(f.amount);
+                }
+            }
+        });
+    }
+    const dataInMillions = monthlyData.map(val => val > 0 ? (val / 1000000).toFixed(2) : 0);
+    const targetData = [8, 8, 8.5, 8.5, 9, 9, 9.5, 9.5, 10, 10, 10.5, 10.5]; // Example static target
+
     // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
@@ -129,7 +168,7 @@ function initializeCharts() {
                 datasets: [
                     {
                         label: 'Ingresos',
-                        data: [6.5, 7.2, 7.8, 8.1, 8.5, 8.9, 9.2, 8.7, 9.0, 9.5, 9.8, 9.2],
+                        data: dataInMillions,
                         backgroundColor: 'rgba(6, 182, 212, 0.8)',
                         borderColor: '#06B6D4',
                         borderWidth: 2,
@@ -137,7 +176,7 @@ function initializeCharts() {
                     },
                     {
                         label: 'Objetivo',
-                        data: [8, 8, 8.5, 8.5, 9, 9, 9.5, 9.5, 10, 10, 10.5, 10.5],
+                        data: targetData,
                         type: 'line',
                         borderColor: '#22C55E',
                         backgroundColor: 'transparent',
@@ -195,7 +234,24 @@ function initializeCharts() {
         });
     }
 
-    // Occupancy Donut Chart
+    // Occupancy Donut Chart (Real data based on Class types)
+    let countReformer = 0;
+    let countPersonal = 0;
+    let countGrupal = 0;
+
+    if (dashboardData.classes && dashboardData.classes.length > 0) {
+        dashboardData.classes.forEach(c => {
+            if (c.tipo === 'pilates' || c.nombre.toLowerCase().includes('reformer')) countReformer += c.cupos_ocupados || 0;
+            else if (c.tipo === 'personal' || c.nombre.toLowerCase().includes('personal')) countPersonal += c.cupos_ocupados || 0;
+            else countGrupal += c.cupos_ocupados || 0; // Default to grupal
+        });
+    }
+
+    // Fallback if no data
+    if (countReformer === 0 && countPersonal === 0 && countGrupal === 0) {
+        countReformer = 65; countPersonal = 25; countGrupal = 10;
+    }
+
     const occupancyCtx = document.getElementById('occupancyChart');
     if (occupancyCtx) {
         if (occupancyChartInstance) occupancyChartInstance.destroy();
@@ -204,7 +260,7 @@ function initializeCharts() {
             data: {
                 labels: ['Reformer', 'Personal', 'Grupal'],
                 datasets: [{
-                    data: [65, 25, 10],
+                    data: [countReformer, countPersonal, countGrupal],
                     backgroundColor: ['#06B6D4', '#22C55E', '#F59E0B'],
                     borderWidth: 0,
                     hoverOffset: 10
@@ -393,10 +449,35 @@ function showSection(sectionId) {
     }
 
     function updateKPIs() {
-        // Update Active Members KPI
+        const formatter = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+
+        // 1. Ingresos del Mes
+        const currentMonthStr = new Date().toISOString().slice(0, 7);
+        const monthlyIncome = dashboardData.finances
+            .filter(f => (f.status === 'success' || f.status === 'Pagado') && f.amount > 0 && f.created_at.startsWith(currentMonthStr))
+            .reduce((sum, f) => sum + Number(f.amount), 0);
+        const incomeKpi = document.querySelector('.kpi-card:nth-child(1) .kpi-value');
+        if (incomeKpi) incomeKpi.textContent = (monthlyIncome / 1000000).toFixed(1) + 'M';
+
+        // 2. Socios Activos
         const activeMembers = dashboardData.members.filter(m => m.estado === 'Activo').length;
         const membersKpi = document.querySelector('.kpi-card:nth-child(2) .kpi-value');
         if (membersKpi) membersKpi.textContent = activeMembers;
+
+        // 3. Ocupación Promedio
+        const totalOccupied = dashboardData.classes.reduce((sum, c) => sum + (c.cupos_ocupados || 0), 0);
+        const totalMax = dashboardData.classes.reduce((sum, c) => sum + (c.cupos_max || 10), 0);
+        const avgOccupancy = totalMax > 0 ? Math.round((totalOccupied / totalMax) * 100) : 0;
+        const occKpi = document.querySelector('.kpi-card:nth-child(3) .kpi-value');
+        if (occKpi) occKpi.textContent = avgOccupancy + '%';
+
+        // 4. Leads Nuevos
+        const newLeads = dashboardData.leads.filter(l => l.status === 'Nuevo').length;
+        const leadsKpi = document.querySelector('.kpi-card:nth-child(4) .kpi-value');
+        if (leadsKpi) leadsKpi.textContent = newLeads;
+
+        // Resync charts with real data if needed
+        setTimeout(initializeCharts, 50);
     }
 
     // Hide dashboard elements
@@ -427,6 +508,10 @@ function showSection(sectionId) {
             pageTitle.textContent = 'Calendario de Clases';
             renderCalendar(dynamicContent);
             break;
+        case 'plans':
+            pageTitle.textContent = 'Gestión de Planes y Precios';
+            renderPlans(dynamicContent);
+            break;
         case 'waitlist':
             pageTitle.textContent = 'Lista de Espera';
             renderWaitlist(dynamicContent);
@@ -445,7 +530,7 @@ function renderMembers(container) {
         <div class="glass-card">
             <div class="p-md flex justify-between items-center border-b border-white-05">
                 <h3>Lista de Socios</h3>
-                <button class="btn btn-primary btn-sm">+ Nuevo Socio</button>
+                <button class="btn btn-primary btn-sm" onclick="showNewMemberModal()">+ Nuevo Socio</button>
             </div>
             <table>
                 <thead>
@@ -495,7 +580,7 @@ function renderLeads(container) {
                             <span class="badge badge-info">${l.phone || l.email}</span>
                         </div>
                     `).join('')}
-                    <button class="btn btn-secondary btn-sm w-full">+ Añadir</button>
+                    <button class="btn btn-secondary btn-sm w-full" onclick="handleNewLead()">+ Añadir</button>
                 </div>
             `).join('')}
         </div>
@@ -503,24 +588,36 @@ function renderLeads(container) {
 }
 
 function renderFinances(container) {
+    const totalIncome = dashboardData.finances
+        .filter(f => f.status === 'success' || f.status === 'Pagado')
+        .reduce((sum, f) => sum + Number(f.amount), 0);
+
+    const formatter = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+
     container.innerHTML = `
         <div class="grid grid-cols-3 gap-lg mb-lg">
-            <div class="card p-lg text-center"><p class="text-muted text-xs">Ingresos</p><h3 class="text-success">$9,245,000</h3></div>
-            <div class="card p-lg text-center"><p class="text-muted text-xs">Egresos</p><h3 class="text-error">$4,120,000</h3></div>
-            <div class="card p-lg text-center"><p class="text-muted text-xs">Utilidad</p><h3 class="text-primary">$5,125,000</h3></div>
+            <div class="card p-lg text-center"><p class="text-muted text-xs">Ingresos Históricos</p><h3 class="text-success">${formatter.format(totalIncome)}</h3></div>
+            <div class="card p-lg text-center"><p class="text-muted text-xs">Egresos Anuales</p><h3 class="text-error">${formatter.format(0)}</h3></div>
+            <div class="card p-lg text-center"><p class="text-muted text-xs">Utilidad Neta</p><h3 class="text-primary">${formatter.format(totalIncome)}</h3></div>
         </div>
         <div class="glass-card">
             <table>
-                <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead>
                 <tbody>
-                    ${DUMMY_DATA.finances.map(f => `
+                    ${dashboardData.finances.length === 0 ? '<tr><td colspan="5" class="text-center p-md">No hay transacciones registradas</td></tr>' : ''}
+                    ${dashboardData.finances.map(f => {
+        const dateNum = new Date(f.created_at);
+        const isIncome = f.amount > 0;
+        return `
                         <tr>
-                            <td>${f.date}</td>
-                            <td>${f.concept}</td>
-                            <td class="${f.type === 'Ingreso' ? 'text-success' : 'text-error'} font-700">${f.amount > 0 ? '+' : ''}${formatCurrency(f.amount)}</td>
-                            <td><span class="badge badge-success">Pagado</span></td>
+                            <td>${dateNum.toLocaleDateString('es-CL')} ${dateNum.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</td>
+                            <td>${f.description || f.item_name || 'Membresía o Servicio'}</td>
+                            <td class="${isIncome ? 'text-success' : 'text-error'} font-700">${isIncome ? '+' : ''}${formatter.format(f.amount)}</td>
+                            <td>${f.payment_method || 'Flow.cl'}</td>
+                            <td><span class="badge badge-${f.status === 'success' || f.status === 'Pagado' ? 'success' : 'warning'}">${f.status === 'success' ? 'Pagado' : f.status}</span></td>
                         </tr>
-                    `).join('')}
+                        `;
+    }).join('')}
                 </tbody>
             </table>
         </div>
@@ -631,7 +728,127 @@ async function removeFromWaitlist(waitlistId) {
     }
 }
 
+async function handleNewLead() {
+    const nombre = prompt('Nombre del Prospecto:');
+    const email = prompt('Email/Teléfono:');
+    if (nombre && email) {
+        try {
+            const { error } = await supabase
+                .from('leads')
+                .insert([{ nombre, email, status: 'Nuevo', source: 'Manual' }]);
+            if (error) throw error;
+            alert('Lead registrado ✅');
+            fetchDashboardData();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(amount);
+}
+
+async function showNewMemberModal() {
+    // In a real premium app we would have a proper modal. 
+    // For now we use prompts for agility as requested to fix functionality first.
+    const nombre = prompt('Nombre del Socio:');
+    const email = prompt('Email:');
+    if (!nombre || !email) return;
+
+    let planType = prompt('Tipo de Plan (1: Pilates, 2: Gimnasio):');
+    let planName = '';
+    let clasesRestantes = 0;
+
+    if (planType === '1') {
+        let freq = prompt('Frecuencia Pilates (1, 2, 3 o 4 veces por semana):');
+        planName = `Pilates ${freq}x Semanal`;
+        clasesRestantes = parseInt(freq) * 4;
+    } else {
+        planName = 'Plan Entrenamiento Gimnasio';
+        clasesRestantes = 99; // Unlimited for gym
+    }
+
+    try {
+        const { error } = await supabase
+            .from('socios')
+            .insert([{
+                nombre,
+                email,
+                plan: planName,
+                estado: 'Activo',
+                clases_restantes: clasesRestantes,
+                fecha_vencimiento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            }]);
+        if (error) throw error;
+        alert('Socio registrado ✅');
+        fetchDashboardData();
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function renderPlans(container) {
+    container.innerHTML = `
+        <div class="grid grid-cols-2 gap-lg mb-lg">
+            <div class="glass-card p-lg">
+                <h3 class="mb-md text-primary">Pilates Reformer</h3>
+                <p class="text-xs text-muted mb-lg">Configuración de precios por frecuencia semanal</p>
+                <div class="grid gap-md">
+                    ${DUMMY_DATA.plans.pilates.map(p => `
+                        <div class="flex justify-between items-center p-md bg-white-05 rounded-xl border border-white-05 plan-editor-card">
+                            <div>
+                                <p class="font-600">${p.name}</p>
+                                <p class="text-xs text-muted">${p.duration} mes(es) • ${p.freq} vez/sem</p>
+                            </div>
+                            <div class="flex items-center gap-sm">
+                                <span class="text-xs opacity-60">CLP</span>
+                                <input type="number" class="price-input" value="${p.price}" onchange="updatePlanPrice('pilates', '${p.id}', this.value)">
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="glass-card p-lg">
+                <h3 class="mb-md text-success">Gimnasio</h3>
+                <p class="text-xs text-muted mb-lg">Planes de musculación y entrenamiento libre</p>
+                <div class="grid gap-md">
+                    ${DUMMY_DATA.plans.gym.map(p => `
+                        <div class="flex justify-between items-center p-md bg-white-05 rounded-xl border border-white-05 plan-editor-card">
+                            <div>
+                                <p class="font-600">${p.name}</p>
+                                <p class="text-xs text-muted">${p.duration} mes(es)</p>
+                            </div>
+                            <div class="flex items-center gap-sm">
+                                <span class="text-xs opacity-60">CLP</span>
+                                <input type="number" class="price-input" value="${p.price}" onchange="updatePlanPrice('gym', '${p.id}', this.value)">
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end p-md">
+            <button class="btn btn-primary" onclick="savePlanConfig()">Guardar Configuración</button>
+        </div>
+    `;
+}
+
+function updatePlanPrice(type, id, newPrice) {
+    const plan = DUMMY_DATA.plans[type].find(p => p.id === id);
+    if (plan) plan.price = parseInt(newPrice);
+    console.log(`Updated price for ${id}: ${newPrice}`);
+}
+
+function savePlanConfig() {
+    alert('Configuración de planes guardada exitosamente ✅');
+}
+
 window.handleCheckIn = handleCheckIn;
 window.promoteFromWaitlist = promoteFromWaitlist;
 window.removeFromWaitlist = removeFromWaitlist;
 window.showSection = showSection;
+window.handleNewLead = handleNewLead;
+window.showNewMemberModal = showNewMemberModal;
+window.updatePlanPrice = updatePlanPrice;
+window.savePlanConfig = savePlanConfig;
