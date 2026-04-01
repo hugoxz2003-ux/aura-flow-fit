@@ -1,0 +1,52 @@
+{
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/shared-styles.css",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    },
+    {
+      "source": "/supabase-config.js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/dashboard/login",
+      "destination": "/dashboard/login.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/dashboard/((?!.*\\.(?:js|css|html|ico|png|jpg|svg|webp|json|txt)$).*)",
+      "destination": "/dashboard/index.html"
+    },
+    {
+      "source": "/client-app/login",
+      "destination": "/client-app/login.html"
+    },
+    {
+      "source": "/client-app",
+      "destination": "/client-app/index.html"
+    },
+    {
+      "source": "/client-app/((?!.*\\.(?:js|css|html|ico|png|jpg|svg|webp|json|txt)$).*)",
+      "destination": "/client-app/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/landing_page/index.html"
+    }
+  ]
+}

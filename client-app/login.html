@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socio Login - Aura Flow Fit</title>
+    <link rel="stylesheet" href="../shared-styles.css">
+    <style>
+        body {
+            background: #09090B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(24, 24, 27, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #06B6D4;
+            margin-bottom: 32px;
+            display: block;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: #A1A1AA;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: #D4D4D8;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: #06B6D4;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .error-msg {
+            color: #EF4444;
+            font-size: 13px;
+            margin-top: 16px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <span class="logo">AURA FLOW FIT</span>
+        <h1>Acceso Socios</h1>
+        <p>Ingresa tu correo para gestionar tus clases</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="email" placeholder="tu@correo.com" required>
+            </div>
+            <button type="submit" class="btn-login">Entrar</button>
+            <div id="errorMsg" class="error-msg">No encontramos un socio con ese correo.</div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+    <script>
+        const AUTH_KEY = 'aura_client_auth';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            try {
+                const { data: users, error } = await supabase
+                    .from('socios')
+                    .select('*')
+                    .eq('email', email);
+
+                if (error) throw error;
+
+                if (users && users.length > 0) {
+                    localStorage.setItem(AUTH_KEY, JSON.stringify({
+                        email: email,
+                        authenticated: true,
+                        timestamp: new Date().getTime()
+                    }));
+                    window.location.href = 'index.html';
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Error de Supabase, usando Fallback Local:', err);
+                if (email === 'ana@example.com' || email === 'laura@example.com') {
+                    localStorage.setItem(AUTH_KEY, JSON.stringify({
+                        email: email,
+                        authenticated: true,
+                        timestamp: new Date().getTime(),
+                        offline: true
+                    }));
+                    window.location.href = 'index.html';
+                } else {
+                    errorMsg.textContent = 'Modo Demo (Offline): Por favor usa ana@example.com o laura@example.com para probar el sistema.';
+                    errorMsg.style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

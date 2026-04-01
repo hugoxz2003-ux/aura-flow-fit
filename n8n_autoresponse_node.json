@@ -1,0 +1,27 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "¡Gracias por contactar a Aura Flow Fit! 🧘‍♀️",
+        "content": "Hola {{ $json.name }},\n\n¡Gracias por tu interés en Aura Flow Fit! Hemos recibido tu solicitud de contacto exitosamente con el siguiente mensaje:\n\n\"{{ $json.message }}\"\n\nNuestro equipo se pondrá en contacto contigo dentro de las próximas 24 horas para coordinar los detalles de tu primera sesión con nosotros.\n\nMientras tanto, te invitamos a visitar nuestras instalaciones o seguirnos en nuestro Instagram @auraflowfit.\n\nNos vemos pronto en el estudio,\n\nEquipo de Aura Flow Fit\n📍 Las Condes, a pasos de Escuela Militar\n📧 contacto@auraflowfit.cl\n📱 +56 9 1234 5678",
+        "options": {}
+      },
+      "id": "e6dd5297-bca8-4721-aab1-638e833446ff",
+      "name": "Send Email Autoresponder",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "YOUR_SMTP_CREDENTIAL_ID",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "connections": {}
+}
