@@ -375,23 +375,25 @@ function initializeCharts() {
 function setupEventListeners() {
     // Navigation - Rely on hashchange for robustness
     window.addEventListener('hashchange', () => {
-        const sectionTarget = window.location.hash.substring(1) || 'dashboard';
-        showSection(sectionTarget);
+        const fullHash = window.location.hash || '#dashboard';
+        const sectionTarget = fullHash.substring(1);
         
-        // Update active class
-        document.querySelectorAll('.nav-item').forEach(nav => {
-            if (nav.getAttribute('href') === `#${sectionTarget}`) {
-                nav.classList.add('active');
-            } else {
-                nav.classList.remove('active');
-            }
-        });
+        console.log('Hash change detected:', sectionTarget);
+        showSection(sectionTarget);
     });
 
-    // Handle initial load if hash is present
-    if (window.location.hash) {
-        const initialSection = window.location.hash.substring(1);
-        showSection(initialSection);
+    // Handle initial load
+    const initialHash = window.location.hash.substring(1) || 'dashboard';
+    console.log('Initial load section:', initialHash);
+    showSection(initialHash);
+
+    // Sidebar management for mobile (if hamburger exists)
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.querySelector('.sidebar');
+    if (menuBtn && sidebar) {
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
     }
 
     // Search functionality
@@ -399,28 +401,21 @@ function setupEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
-            console.log('Searching for:', searchTerm);
-        });
-    }
-
-    // Mobile sidebar toggle
-    const sidebar = document.querySelector('.sidebar');
-    const menuToggle = document.getElementById('mobile-menu-toggle');
-
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-    }
-
-    // Close sidebar on navigation (mobile)
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
+            // Filter members table if it exists
+            const membersTableBody = document.querySelector('#members-table-body');
+            if (membersTableBody) {
+                const rows = membersTableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
             }
         });
-    });
+    }
+
+    // Sidebar management is now centralized in index.html inline script 
+    // to avoid event listener conflicts.
+
 
     // Check-in Buttons
     document.addEventListener('click', async (e) => {
@@ -470,87 +465,113 @@ window.handleLogout = () => {
 };
 
 function showSection(sectionId) {
-    const mainContent = document.querySelector('.main-content');
-    const pageTitle = document.querySelector('.page-title');
-    const dashboardWidgets = document.getElementById('dashboard-widgets');
+    try {
+        console.log('Switching to section:', sectionId);
+        const mainContent = document.querySelector('.main-content');
+        const pageTitle = document.querySelector('.page-title');
+        const dashboardWidgets = document.getElementById('dashboard-widgets');
 
-    if (!mainContent || !pageTitle) return;
+        if (!mainContent || !pageTitle) {
+            throw new Error('Critical UI elements not found for section switching');
+        }
 
-    // Remove any existing dynamic content
-    const existingDynamic = document.getElementById('dynamic-content');
-    if (existingDynamic) existingDynamic.remove();
+        // --- NEW: Update Sidebar UI ---
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href') === `#${sectionId}`) {
+                item.classList.add('active');
+            }
+        });
 
-    if (sectionId === 'dashboard') {
-        if (dashboardWidgets) dashboardWidgets.style.display = 'block';
-        pageTitle.textContent = 'Dashboard';
-        renderTodayClasses();
-        updateKPIs();
+        // Hide all dynamic content containers first
+        const containers = document.querySelectorAll('#dynamic-content, #dashboard-widgets');
+        containers.forEach(c => {
+            if (c) c.style.display = 'none';
+        });
 
-        // Re-initialize charts to fix "shifted" or zero-size issues when switching views
-        setTimeout(initializeCharts, 100);
-        return;
-    }
+        // Remove any existing dynamic content area to avoid duplication
+        const existingDynamic = document.getElementById('dynamic-content');
+        if (existingDynamic) existingDynamic.remove();
 
-    // Hide dashboard elements
-    if (dashboardWidgets) dashboardWidgets.style.display = 'none';
+        if (sectionId === 'dashboard') {
+            if (dashboardWidgets) {
+                dashboardWidgets.style.display = 'block';
+                pageTitle.textContent = 'Dashboard Overview';
+                renderTodayClasses();
+                updateKPIs();
+                setTimeout(initializeCharts, 150);
+            }
+            return;
+        }
 
-    // Create dynamic content area
-    const dynamicContent = document.createElement('div');
+        // Create and show dynamic content area
+        const dynamicContent = document.createElement('div');
+        dynamicContent.id = 'dynamic-content';
+        dynamicContent.className = 'animate-fadeIn'; 
+        mainContent.appendChild(dynamicContent);
 
-    dynamicContent.id = 'dynamic-content';
-    mainContent.appendChild(dynamicContent);
-
-    switch (sectionId) {
-        case 'members':
-            pageTitle.textContent = 'Gestión de Socios';
-            renderMembers(dynamicContent);
-            break;
-        case 'leads':
-            pageTitle.textContent = 'Pipeline de Leads';
-            renderLeads(dynamicContent);
-            break;
-        case 'finances':
-            pageTitle.textContent = 'Finanzas y Pagos';
-            renderFinances(dynamicContent);
-            break;
-        case 'calendar':
-            pageTitle.textContent = 'Calendario de Clases';
-            renderCalendar(dynamicContent);
-            break;
-        case 'plans':
-            pageTitle.textContent = 'Gestión de Planes y Precios';
-            renderPlans(dynamicContent);
-            break;
-        case 'waitlist':
-            pageTitle.textContent = 'Lista de Espera';
-            renderWaitlist(dynamicContent);
-            break;
-        case 'evaluations':
-            pageTitle.textContent = 'Evaluaciones Físicas';
-            renderEvaluations(dynamicContent);
-            break;
-        case 'attendance':
-            pageTitle.textContent = 'Control de Asistencia';
-            renderAttendance(dynamicContent);
-            break;
-        case 'freetrial':
-            pageTitle.textContent = 'Gestión de Clases de Prueba';
-            renderFreeTrial(dynamicContent);
-            break;
-        case 'settings':
-            pageTitle.textContent = 'Configuración';
-            // renderSettings(dynamicContent); // To be implemented or demo
-            break;
-        case 'comunicacion':
-            pageTitle.textContent = 'Comunicación y Avisos';
-            renderComunicacion(dynamicContent); 
-            break;
-        default:
-            pageTitle.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
-            dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
-                <p class="text-xl mb-md">Módulo ${sectionId} en construcción</p>
-                <div class="spinner"></div>
-            </div>`;
+        // Render target section
+        switch (sectionId) {
+            case 'members':
+                pageTitle.textContent = 'Gestión de Socios';
+                renderMembers(dynamicContent);
+                break;
+            case 'leads':
+                pageTitle.textContent = 'Pipeline de Leads';
+                renderLeads(dynamicContent);
+                break;
+            case 'finances':
+                pageTitle.textContent = 'Finanzas y Pagos';
+                renderFinances(dynamicContent);
+                break;
+            case 'calendar':
+                pageTitle.textContent = 'Calendario de Clases';
+                renderCalendar(dynamicContent);
+                break;
+            case 'plans':
+                pageTitle.textContent = 'Gestión de Planes y Precios';
+                renderPlans(dynamicContent);
+                break;
+            case 'waitlist':
+                pageTitle.textContent = 'Lista de Espera';
+                renderWaitlist(dynamicContent);
+                break;
+            case 'evaluations':
+                pageTitle.textContent = 'Evaluaciones Físicas';
+                renderEvaluations(dynamicContent);
+                break;
+            case 'attendance':
+                pageTitle.textContent = 'Control de Asistencia';
+                renderAttendance(dynamicContent);
+                break;
+            case 'freetrial':
+                pageTitle.textContent = 'Gestión de Clases de Prueba';
+                renderFreeTrial(dynamicContent);
+                break;
+            case 'settings':
+                pageTitle.textContent = 'Configuración';
+                if (typeof renderSettings === 'function') {
+                    renderSettings(dynamicContent);
+                } else {
+                    dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
+                        <p class="text-xl mb-md">Módulo de Configuración</p>
+                        <p class="text-muted">Ajustes del sistema y perfiles.</p>
+                    </div>`;
+                }
+                break;
+            case 'comunicacion':
+                pageTitle.textContent = 'Comunicación y Avisos';
+                renderComunicacion(dynamicContent); 
+                break;
+            default:
+                pageTitle.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+                dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
+                    <p class="text-xl mb-md">Módulo "${sectionId}" no disponible</p>
+                    <button class="btn btn-primary" onclick="showSection('dashboard')">Volver al Inicio</button>
+                </div>`;
+        }
+    } catch (err) {
+        console.error('Navigation Error:', err);
     }
 }
 
@@ -726,7 +747,7 @@ function renderMembers(container) {
                 <h3>Lista de Socios (${dashboardData.members.length})</h3>
                 <button class="btn btn-primary btn-sm" onclick="document.getElementById('member-form-wrap').style.display='block'; window.scrollTo(0,0);">+ Nuevo Socio</button>
             </div>
-            <table>
+            <table class="w-full">
                 <thead>
                     <tr>
                         <th>Socio</th>
@@ -736,7 +757,7 @@ function renderMembers(container) {
                         <th>Estado</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="members-table-body">
                     ${dashboardData.members.length === 0 ? '<tr><td colspan="5" class="text-center p-lg">Sin socios registrados</td></tr>' :
                         dashboardData.members.map(m => `
                         <tr>
@@ -1131,37 +1152,36 @@ window.guardarClase = guardarClase;
 window.editarClase = editarClase;
 window.eliminarClase = eliminarClase;
 
-function renderWaitlist(container) {
-    if (dashboardData.waitlist.length === 0) {
-        container.innerHTML = '<div class="glass-card p-xl text-center"><p class="text-muted">No hay socios en lista de espera actualmente.</p></div>';
-        return;
-    }
-
+function renderFreeTrial(container) {
+    const trials = dashboardData.leads ? dashboardData.leads.filter(l => l.status === 'Prueba' || (l.notes && l.notes.includes('freetrial'))) : [];
+    
     container.innerHTML = `
-        <div class="glass-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Socio</th>
-                        <th>Clase</th>
-                        <th>Fecha Solicitud</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${dashboardData.waitlist.map(w => `
-                        <tr>
-                            <td>${w.socio.nombre}</td>
-                            <td>${w.clase.nombre} • ${w.clase.horario.substring(0, 5)}</td>
-                            <td>${new Date(w.created_at).toLocaleDateString('es-CL')}</td>
-                            <td>
-                                <button class="btn btn-primary btn-sm" onclick="promoteFromWaitlist('${w.id}')">Asignar Cupo</button>
-                                <button class="btn btn-secondary btn-sm" onclick="removeFromWaitlist('${w.id}')">Quitar</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
+        <div class="flex justify-between items-center mb-lg">
+            <div>
+                <h3>Gestión de Clases de Prueba</h3>
+                <p class="text-xs text-muted">Prospectos que solicitaron una sesión de cortesía</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="showNewLeadForm()">+ Nuevo Prospecto</button>
+        </div>
+
+        <div class="grid grid-cols-1 gap-md">
+            ${trials.length === 0 ? `
+                <div class="glass-card p-xl text-center">
+                    <p class="text-muted mb-md">No hay sesiones de prueba agendadas recientemente.</p>
+                    <button class="btn btn-secondary btn-sm" onclick="showSection('leads')">Ir al Pipeline de Leads</button>
+                </div>
+            ` : trials.map(t => `
+                <div class="glass-card p-lg flex justify-between items-center border-l-4 border-warning">
+                    <div>
+                        <p class="font-700 text-lg">${t.nombre}</p>
+                        <p class="text-sm text-muted">${t.email || t.phone || 'Sin contacto'} • Origen: ${t.source || 'Directo'}</p>
+                    </div>
+                    <div class="flex gap-md">
+                        <button class="btn btn-primary btn-sm" onclick="alert('Funcionalidad de Check-in de Prueba en desarrollo')">Confirmar Asistencia</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showSection('leads')">Ver Pipeline</button>
+                    </div>
+                </div>
+            `).join('')}
         </div>
     `;
 }
@@ -1842,11 +1862,13 @@ window.updateAttendance = async function(id, status) {
     fetchDashboardData();
 };
 
+// Consolidated waitlist function used in showSection
 function renderWaitlist(container) {
-    const waitlist = dashboardData.waitlist || [];
+    const list = dashboardData.waitlist || [];
+    
     container.innerHTML = `
         <div class="glass-card">
-            <div class="p-lg border-b">
+            <div class="p-lg border-b border-white-05">
                 <h3>Socios en Espera</h3>
                 <p class="text-sm text-muted">Personas esperando cupo en clases llenas</p>
             </div>
@@ -1861,14 +1883,16 @@ function renderWaitlist(container) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${waitlist.map((w, idx) => `
+                    ${list.length === 0 ? '<tr><td colspan="5" class="text-center p-xl text-muted">No hay nadie en lista de espera.</td></tr>' : 
+                      list.map((w, idx) => `
                         <tr>
-                            <td>${new Date(w.created_at).toLocaleDateString()}</td>
+                            <td>${new Date(w.created_at).toLocaleDateString('es-CL')}</td>
                             <td><strong>${w.socio?.nombre || 'Socio'}</strong></td>
-                            <td>${w.clase?.nombre || 'Clase'}</td>
+                            <td>${w.clase?.nombre || 'Clase'} • ${(w.clase?.horario || '').substring(0,5)}</td>
                             <td><span class="badge badge-info">#${idx + 1}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="notifyWaitlist('${w.id}')">Notificar Cupo</button>
+                            <td class="flex gap-sm">
+                                <button class="btn btn-primary btn-sm" onclick="promoteFromWaitlist('${w.id}')">Promover</button>
+                                <button class="btn btn-sm btn-outline text-error" onclick="removeFromWaitlist('${w.id}')">✕</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -2017,24 +2041,56 @@ window.guardarConfigGym = function() {
 /* ============================================================
    INITIALIZATION & EXPORTS
 ============================================================ */
-window.handleLogout = () => window.location.href = 'login.html';
+function initApp() {
+    // 1. Initial Data Fetch
+    fetchDashboardData().then(() => {
+        // 2. Initial Section Load (from Hash)
+        const initialSection = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+        showSection(initialSection);
+        
+        // 3. Remove Global Loading after data is ready
+        setTimeout(() => {
+            const loader = document.getElementById('global-loading');
+            if (loader) loader.style.opacity = '0';
+            setTimeout(() => loader && loader.remove(), 500);
+        }, 300);
+    });
+
+    // 4. Setup Hash Change Listener (Deep Routing)
+    window.addEventListener('hashchange', () => {
+        const section = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+        showSection(section);
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
-    fetchDashboardData();
+    initApp();
 });
 
+// Global Exports
 window.showSection = showSection;
 window.fetchDashboardData = fetchDashboardData;
 window.showEvalForm = showEvalForm;
 window.guardarEvaluacion = guardarEvaluacion;
 window.calcularIMC = calcularIMC;
 window.updateAttendance = updateAttendance;
-window.enviarMensaje = enviarMensaje;
-window.aplicarTemplate = aplicarTemplate;
+window.renderFreeTrial = renderFreeTrial;
+window.renderWaitlist = renderWaitlist;
 window.renderComunicacion = renderComunicacion;
 window.renderSettings = renderSettings;
 window.renderAttendance = renderAttendance;
+window.showNewLeadForm = () => {
+    window.location.hash = '#leads';
+    setTimeout(() => {
+        const wrap = document.getElementById('lead-form-wrap');
+        if (wrap) wrap.style.display = 'block';
+    }, 200);
+};
+window.handleLogout = () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+};
 
 
 

@@ -28,66 +28,85 @@ async function initClient() {
         return;
     }
 
-    // Show loading overlay
-    const loadingOverlay = document.createElement('div');
-    loadingOverlay.id = 'app-loading-overlay';
-    loadingOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:#18181B; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999;';
-    loadingOverlay.innerHTML = `
-        <div class="flex flex-col items-center gap-lg">
-            <div class="spinner" style="width:40px; height:40px; border-width:4px;"></div>
-            <p style="color:var(--primary); font-weight:700; letter-spacing:2px; font-size:12px; margin-top:20px;">INICIANDO AURA FLOW...</p>
-        </div>
-    `;
-    document.body.appendChild(loadingOverlay);
-
-    const session = JSON.parse(sessionStr);
-    const userEmail = session.email;
+    // Professional Loading Overlay
+    let loader = document.getElementById('app-loading-overlay');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'app-loading-overlay';
+        loader.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:#09090B; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition: opacity 0.5s;';
+        loader.innerHTML = `
+            <div class="flex flex-col items-center gap-lg">
+                <div class="spinner" style="width:40px; height:40px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--primary); border-radius:50%; animation: spin 0.8s linear infinite;"></div>
+                <p style="color:var(--text-muted); font-size:0.7rem; letter-spacing:2px; margin-top:1.5rem; text-transform:uppercase; font-weight:700;">AURA FLOW SYNC</p>
+            </div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        `;
+        document.body.appendChild(loader);
+    }
 
     try {
-        // Fetch user data
-        const { data: users, error: userError } = await supabase
-            .from('socios')
-            .select('*')
-            .eq('email', userEmail);
+        if (typeof supabase === 'undefined') throw new Error('Supabase no cargado');
 
-        if (userError) throw userError;
-        clientData.user = users[0];
+        const session = JSON.parse(sessionStr);
+        const userEmail = session.email;
 
-        // Fetch classes
-        const { data: classes, error: classError } = await supabase
-            .from('clases')
-            .select('*');
+        // Parallel Fetch for Speed
+        const [userResp, classResp, bookResp, waitResp, notifResp] = await Promise.all([
+            supabase.from('socios').select('*').eq('email', userEmail).single(),
+            supabase.from('clases').select('*'),
+            supabase.from('reservas').select('*, clases(*)').eq('email', userEmail).order('fecha', { ascending: true }),
+            supabase.from('lista_espera').select('*, clases(*)').eq('email', userEmail),
+            supabase.from('notificaciones').select('*').order('id', { ascending: false })
+        ]);
 
-        if (classError) throw classError;
-        clientData.classes = classes;
+        if (userResp.error) throw userResp.error;
+        clientData.user = userResp.data;
+        clientData.classes = classResp.data || [];
+        clientData.bookings = bookResp.data || [];
+        clientData.waitlist = waitResp.data || [];
+        clientData.notifications = (notifResp.data || []).filter(n => n.tipo === 'global' || n.socio_id === clientData.user.id);
 
-        // Fetch User Reservations (Future and Recent)
-        const { data: bookings, error: bookingsError } = await supabase
-            .from('reservas')
-            .select('*, clases(*)')
-            .eq('socio_id', clientData.user.id)
-            .order('fecha', { ascending: true });
-
-        if (bookingsError) throw bookingsError;
-        clientData.bookings = bookings;
-
-        // Fetch Notifications
-        const { data: notifications, error: notifError } = await supabase
-            .from('notificaciones')
-            .select('*')
-            .order('id', { ascending: false });
+        console.log('Sync Complete:', clientData.user.nombre);
         
-        clientData.notifications = (notifications || []).filter(n => n.tipo === 'global');
+        // Initial Section from Hash
+        const initialView = window.location.hash ? window.location.hash.substring(1) : 'home';
+        showView(initialView);
+        
+        renderHome();
+        updateStats();
 
-        console.log('Client data initialized:', clientData);
+        // Fade out loader
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        }, 300);
 
     } catch (err) {
-        console.error('Error initializing client:', err);
-        console.warn('Supabase no responde. Cargando DEMO DATA local...');
-        clientData.user = userEmail === 'ana@example.com' ? DEMO_USER : { ...DEMO_USER, nombre: session.email, email: session.email };
-        clientData.classes = JSON.parse(JSON.stringify(DEMO_CLASSES));
-        clientData.bookings = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
-        clientData.waitlist = JSON.parse(localStorage.getItem('demo_waitlist') || '[]');
+        console.error('Core App Sync Failure:', err);
+        loader.innerHTML = `
+            <div class="flex flex-col items-center p-xl text-center">
+                <i class="fas fa-exclamation-triangle text-primary mb-md" style="font-size:2rem;"></i>
+                <p class="font-800 mb-sm text-large">ERROR DE CONEXIÓN</p>
+                <p class="text-muted text-small mb-lg">No pudimos sincronizar tus datos. ¿Estás conectado a internet?</p>
+                <button class="btn btn-primary" onclick="location.reload()">REINTENTAR</button>
+            </div>
+        `;
+    }
+}
+
+// Ensure Hash Change Navigation
+window.addEventListener('hashchange', () => {
+    const view = window.location.hash ? window.location.hash.substring(1) : 'home';
+    showView(view);
+});
+
+document.addEventListener('DOMContentLoaded', initClient);
+        console.error('Client App - Sync Failed:', err);
+        // Fallback to demo data if offline
+        if (!clientData.user) {
+            clientData.user = userEmail === 'ana@example.com' ? DEMO_USER : { ...DEMO_USER, nombre: userEmail.split('@')[0], email: userEmail };
+        }
+        if (clientData.classes.length === 0) clientData.classes = JSON.parse(JSON.stringify(DEMO_CLASSES));
     } finally {
         updateProfileUI();
         updateMetricsUI();
@@ -96,11 +115,15 @@ async function initClient() {
         renderUserBookings();
         renderNotifications();
         
-        // Remove loading overlay
+        // Remove loading overlay with a smooth fade
         setTimeout(() => {
             const overlay = document.getElementById('app-loading-overlay');
-            if (overlay) overlay.remove();
-        }, 300);
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => overlay.remove(), 500);
+            }
+        }, 600);
     }
 }
 
@@ -243,13 +266,25 @@ function initNavigation() {
             const targetId = btn.getAttribute('data-view');
             if (targetId) {
                 e.preventDefault();
+                
+                // Switch views
                 views.forEach(v => v.classList.remove('active'));
                 const targetView = document.getElementById(targetId);
                 if (targetView) targetView.classList.add('active');
                 
-                // Active class for nav buttons
+                // Update navigation active state
                 clickable.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+                
+                // If it's a bottom nav item, highlight it. If it's an internal link, find its corresponding bottom nav item.
+                if (btn.classList.contains('nav-btn')) {
+                    btn.classList.add('active');
+                } else {
+                    const bottomNavBtn = document.querySelector(`.nav-btn[data-view="${targetId}"]`);
+                    if (bottomNavBtn) bottomNavBtn.classList.add('active');
+                }
+
+                // Scroll to top on view change
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
     });
@@ -455,7 +490,10 @@ async function handleBooking(classId, className, classTime) {
         return;
     }
 
-    if (clientData.user.clases_restantes <= 0) {
+    const currentCredits = parseInt(clientData.user.clases_restantes) || 0;
+    const isUnlimited = currentCredits === 999;
+
+    if (currentCredits <= 0 && !isUnlimited) {
         showNotification('No tienes clases disponibles. Por favor renueva tu plan.', 'error');
         return;
     }
@@ -479,11 +517,21 @@ async function handleBooking(classId, className, classTime) {
         try {
             console.log('Attempting booking for:', { classId, className, dateStr, user: clientData.user });
             
+            // UI Feedback: Set loading state
+            const targetBtn = document.querySelector(`button[onclick*="handleBooking('${classId}'"]`);
+            let originalText = '';
+            if (targetBtn) {
+                originalText = targetBtn.textContent;
+                targetBtn.disabled = true;
+                targetBtn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border-width:2px;"></div>';
+            }
+
             if (!clientData.user || !clientData.user.id) {
                 throw new Error('Usuario no autenticado o ID faltante');
             }
 
             const currentCredits = parseInt(clientData.user.clases_restantes) || 0;
+            const isUnlimited = currentCredits === 999;
 
             // 1. Create reservation
             const { error: resError } = await supabase
@@ -500,8 +548,8 @@ async function handleBooking(classId, className, classTime) {
                 throw resError;
             }
 
-            // 2. Update user's remaining classes (only for Pilates)
-            if (classObj && classObj.tipo === 'pilates') {
+            // 2. Update user's remaining classes (only for Pilates and if NOT unlimited)
+            if (classObj && classObj.tipo === 'pilates' && !isUnlimited) {
                 console.log('Deducting class from pilates plan...');
                 const { error: userUpdateError } = await supabase
                     .from('socios')
@@ -510,10 +558,11 @@ async function handleBooking(classId, className, classTime) {
                 
                 if (userUpdateError) {
                     console.error('Supabase User Update Error:', userUpdateError);
-                    // We don't throw here to avoid failing a successful reservation if just the credit update fails
                 } else {
                     clientData.user.clases_restantes = Math.max(0, currentCredits - 1);
                 }
+            } else if (isUnlimited) {
+                console.log('Unlimited plan - No credit deduction required.');
             }
 
             // 3. Update class occupancy
@@ -533,28 +582,17 @@ async function handleBooking(classId, className, classTime) {
             showNotification('¡Reserva realizada con éxito! ✅');
             
             // Refresh local UI
-            setTimeout(() => initClient(), 1000);
+            setTimeout(() => initClient(), 800);
         } catch (err) {
             console.error('Error in handling booking:', err);
-            // FALLBACK OFFLINE
-            const newBooking = {
-                id: 'b' + Date.now(),
-                socio_id: clientData.user.id,
-                clase_id: classId,
-                fecha: dateStr,
-                clases: classObj
-            };
+            showNotification('Error al procesar reserva. Intenta de nuevo.', 'error');
             
-            clientData.bookings.push(newBooking);
-            localStorage.setItem('demo_bookings', JSON.stringify(clientData.bookings));
-            
-            if (classObj.tipo === 'pilates') clientData.user.clases_restantes -= 1;
-            classObj.cupos_ocupados += 1;
-            
-            showNotification('¡Reserva realizada con éxito (Modo Local)! ✅');
-            renderBookingClasses();
-            renderUserBookings();
-            updateProfileUI();
+            // Reset button if error
+            const targetBtn = document.querySelector(`button[onclick*="handleBooking('${classId}'"]`);
+            if (targetBtn) {
+                targetBtn.disabled = false;
+                targetBtn.textContent = 'Reservar';
+            }
         }
     }
 }
