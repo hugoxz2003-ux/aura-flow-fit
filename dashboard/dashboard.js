@@ -466,112 +466,73 @@ window.handleLogout = () => {
 
 function showSection(sectionId) {
     try {
-        console.log('Switching to section:', sectionId);
+        console.log('--- Switching UI to:', sectionId);
         const mainContent = document.querySelector('.main-content');
         const pageTitle = document.querySelector('.page-title');
         const dashboardWidgets = document.getElementById('dashboard-widgets');
 
-        if (!mainContent || !pageTitle) {
-            throw new Error('Critical UI elements not found for section switching');
+        if (!mainContent || !pageTitle) return;
+
+        // 1. Sidebar Active State
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.toggle('active', item.getAttribute('href') === `#${sectionId}`);
+        });
+
+        // 2. Manage Display Containers
+        let dynamicContainer = document.getElementById('dynamic-module-view');
+        if (!dynamicContainer) {
+            dynamicContainer = document.createElement('div');
+            dynamicContainer.id = 'dynamic-module-view';
+            dynamicContainer.className = 'animate-fadeIn';
+            mainContent.appendChild(dynamicContainer);
         }
 
-        // --- NEW: Update Sidebar UI ---
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('href') === `#${sectionId}`) {
-                item.classList.add('active');
-            }
-        });
+        // 3. Reset Views
+        if (dashboardWidgets) dashboardWidgets.style.display = 'none';
+        dynamicContainer.style.display = 'none';
+        dynamicContainer.innerHTML = ''; // Clear previous module
 
-        // Hide all dynamic content containers first
-        const containers = document.querySelectorAll('#dynamic-content, #dashboard-widgets');
-        containers.forEach(c => {
-            if (c) c.style.display = 'none';
-        });
-
-        // Remove any existing dynamic content area to avoid duplication
-        const existingDynamic = document.getElementById('dynamic-content');
-        if (existingDynamic) existingDynamic.remove();
-
-        if (sectionId === 'dashboard') {
+        // 4. Route to Correct View
+        if (sectionId === 'dashboard' || !sectionId) {
             if (dashboardWidgets) {
                 dashboardWidgets.style.display = 'block';
                 pageTitle.textContent = 'Dashboard Overview';
                 renderTodayClasses();
                 updateKPIs();
-                setTimeout(initializeCharts, 150);
+                setTimeout(initializeCharts, 200);
             }
-            return;
-        }
+        } else {
+            dynamicContainer.style.display = 'block';
+            
+            // Map section IDs to render functions
+            const routes = {
+                members: { title: 'Gestión de Socios', render: renderMembers },
+                leads: { title: 'Pipeline de Leads', render: renderLeads },
+                calendar: { title: 'Calendario de Actividades', render: renderCalendar },
+                plans: { title: 'Planes y Precios', render: renderPlans },
+                waitlist: { title: 'Lista de Espera', render: renderWaitlist },
+                finances: { title: 'Finanzas y Pagos', render: renderFinances },
+                evaluations: { title: 'Evaluaciones Físicas', render: renderEvaluations },
+                attendance: { title: 'Control de Asistencia', render: renderAttendance },
+                freetrial: { title: 'Pruebas de Clase', render: renderFreeTrial },
+                comunicacion: { title: 'Comunicación', render: renderComunicacion },
+                settings: { title: 'Configuración', render: renderSettings }
+            };
 
-        // Create and show dynamic content area
-        const dynamicContent = document.createElement('div');
-        dynamicContent.id = 'dynamic-content';
-        dynamicContent.className = 'animate-fadeIn'; 
-        mainContent.appendChild(dynamicContent);
-
-        // Render target section
-        switch (sectionId) {
-            case 'members':
-                pageTitle.textContent = 'Gestión de Socios';
-                renderMembers(dynamicContent);
-                break;
-            case 'leads':
-                pageTitle.textContent = 'Pipeline de Leads';
-                renderLeads(dynamicContent);
-                break;
-            case 'finances':
-                pageTitle.textContent = 'Finanzas y Pagos';
-                renderFinances(dynamicContent);
-                break;
-            case 'calendar':
-                pageTitle.textContent = 'Calendario de Clases';
-                renderCalendar(dynamicContent);
-                break;
-            case 'plans':
-                pageTitle.textContent = 'Gestión de Planes y Precios';
-                renderPlans(dynamicContent);
-                break;
-            case 'waitlist':
-                pageTitle.textContent = 'Lista de Espera';
-                renderWaitlist(dynamicContent);
-                break;
-            case 'evaluations':
-                pageTitle.textContent = 'Evaluaciones Físicas';
-                renderEvaluations(dynamicContent);
-                break;
-            case 'attendance':
-                pageTitle.textContent = 'Control de Asistencia';
-                renderAttendance(dynamicContent);
-                break;
-            case 'freetrial':
-                pageTitle.textContent = 'Gestión de Clases de Prueba';
-                renderFreeTrial(dynamicContent);
-                break;
-            case 'settings':
-                pageTitle.textContent = 'Configuración';
-                if (typeof renderSettings === 'function') {
-                    renderSettings(dynamicContent);
-                } else {
-                    dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
-                        <p class="text-xl mb-md">Módulo de Configuración</p>
-                        <p class="text-muted">Ajustes del sistema y perfiles.</p>
-                    </div>`;
-                }
-                break;
-            case 'comunicacion':
-                pageTitle.textContent = 'Comunicación y Avisos';
-                renderComunicacion(dynamicContent); 
-                break;
-            default:
-                pageTitle.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
-                dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
-                    <p class="text-xl mb-md">Módulo "${sectionId}" no disponible</p>
-                    <button class="btn btn-primary" onclick="showSection('dashboard')">Volver al Inicio</button>
+            const route = routes[sectionId];
+            if (route) {
+                pageTitle.textContent = route.title;
+                route.render(dynamicContainer);
+            } else {
+                pageTitle.textContent = 'Módulo No Encontrado';
+                dynamicContainer.innerHTML = `<div class="card p-xl text-center">
+                    <p class="text-muted mb-md">El módulo "${sectionId}" aún no ha sido implementado o es inaccesible.</p>
+                    <button class="btn btn-primary" onclick="window.location.hash='dashboard'">Volver al Dashboard</button>
                 </div>`;
+            }
         }
     } catch (err) {
-        console.error('Navigation Error:', err);
+        console.error('Critical Navigation Error:', err);
     }
 }
 
