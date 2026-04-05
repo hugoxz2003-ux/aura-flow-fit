@@ -60,6 +60,7 @@ async function initClient() {
         ]);
 
         if (userResp.error) throw userResp.error;
+        if (!userResp.data) throw new Error('Tu correo no está registrado como Socio activo en este gimnasio.');
         clientData.user = userResp.data;
         clientData.classes = classResp.data || [];
         clientData.bookings = bookResp.data || [];

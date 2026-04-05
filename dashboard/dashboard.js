@@ -2061,6 +2061,55 @@ window.handleLogout = () => {
     window.location.href = 'login.html';
 };
 
+// ============================================================
+// INITIALIZATION & EXPORTS
+// ============================================================
+function initApp() {
+    console.log('--- Aura Flow CRM: Initializing ---');
+    
+    // Register Hash Listener IMMEDIATELY
+    window.addEventListener('hashchange', () => {
+        const section = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+        showSection(section);
+    });
+
+    // 1. Initial Data Fetch
+    fetchDashboardData().then(() => {
+        console.log('--- Aura Flow CRM: Data Synced ---');
+        
+        // 2. Initial Section Load (from Hash)
+        const initialSection = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+        showSection(initialSection);
+        
+        // 3. Remove Global Loading after data is ready
+        setTimeout(() => {
+            const loader = document.getElementById('global-loading');
+            if (loader) {
+                loader.style.transition = 'opacity 0.5s ease';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }
+        }, 300);
+    }).catch(err => {
+        console.error('CRITICAL: App Initialization Failed:', err);
+        // Fallback to local data if Supabase fails completely
+        if (typeof loadDemoData === 'function') loadDemoData();
+        showSection(window.location.hash ? window.location.hash.substring(1) : 'dashboard');
+    });
+}
+
+// Global scope exposures for interactive elements
+window.showSection = showSection;
+window.fetchDashboardData = fetchDashboardData;
+window.initApp = initApp;
+
+// Execute Entry Point
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+
 
 
 

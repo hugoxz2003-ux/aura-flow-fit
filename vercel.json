@@ -20,12 +20,12 @@
     }
   ],
   "rewrites": [
-    { "source": "/dashboard", "destination": "/dashboard/index.html" },
     { "source": "/dashboard/login", "destination": "/dashboard/login.html" },
-    { "source": "/dashboard/:path((?!.*\\..*).*)", "destination": "/dashboard/index.html" },
-    { "source": "/client-app", "destination": "/client-app/index.html" },
+    { "source": "/dashboard/(.*)", "destination": "/dashboard/$1" },
+    { "source": "/dashboard", "destination": "/dashboard/index.html" },
     { "source": "/client-app/login", "destination": "/client-app/login.html" },
-    { "source": "/client-app/:path((?!.*\\..*).*)", "destination": "/client-app/index.html" },
+    { "source": "/client-app/(.*)", "destination": "/client-app/$1" },
+    { "source": "/client-app", "destination": "/client-app/index.html" },
     { "source": "/", "destination": "/index.html" }
   ]
 }
