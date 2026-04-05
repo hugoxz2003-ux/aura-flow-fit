@@ -20,49 +20,12 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/dashboard/login",
-      "destination": "/dashboard/login.html"
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/dashboard/index.html"
-    },
-    {
-      "source": "/dashboard/(.*).js",
-      "destination": "/dashboard/$1.js"
-    },
-    {
-      "source": "/dashboard/(.*).css",
-      "destination": "/dashboard/$1.css"
-    },
-    {
-      "source": "/dashboard/((?!api|_next|static|[^.]*\\..*$).*)",
-      "destination": "/dashboard/index.html"
-    },
-    {
-      "source": "/client-app/login",
-      "destination": "/client-app/login.html"
-    },
-    {
-      "source": "/client-app",
-      "destination": "/client-app/index.html"
-    },
-    {
-      "source": "/client-app/(.*).js",
-      "destination": "/client-app/$1.js"
-    },
-    {
-      "source": "/client-app/(.*).css",
-      "destination": "/client-app/$1.css"
-    },
-    {
-      "source": "/client-app/((?!api|_next|static|[^.]*\\..*$).*)",
-      "destination": "/client-app/index.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
-    }
+    { "source": "/dashboard", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard/login", "destination": "/dashboard/login.html" },
+    { "source": "/dashboard/:path((?!.*\\..*).*)", "destination": "/dashboard/index.html" },
+    { "source": "/client-app", "destination": "/client-app/index.html" },
+    { "source": "/client-app/login", "destination": "/client-app/login.html" },
+    { "source": "/client-app/:path((?!.*\\..*).*)", "destination": "/client-app/index.html" },
+    { "source": "/", "destination": "/index.html" }
   ]
 }
