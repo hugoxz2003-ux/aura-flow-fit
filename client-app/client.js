@@ -763,4 +763,11 @@ window.handleLogout = handleLogout;
 window.downloadPlanilla = downloadPlanilla;
 window.showNotification = showNotification;
 
+// Execute Entry Point
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initClient);
+} else {
+    initClient();
+}
+
 

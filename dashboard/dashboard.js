@@ -373,19 +373,9 @@ function initializeCharts() {
 }
 
 function setupEventListeners() {
-    // Navigation - Rely on hashchange for robustness
-    window.addEventListener('hashchange', () => {
-        const fullHash = window.location.hash || '#dashboard';
-        const sectionTarget = fullHash.substring(1);
-        
-        console.log('Hash change detected:', sectionTarget);
-        showSection(sectionTarget);
-    });
+    // Navigation logic is now centralized in initApp() to ensure early registration
 
-    // Handle initial load
-    const initialHash = window.location.hash.substring(1) || 'dashboard';
-    console.log('Initial load section:', initialHash);
-    showSection(initialHash);
+    // Initial section load removed from here as it is now centralized in initApp()
 
     // Sidebar management for mobile (if hamburger exists)
     const menuBtn = document.getElementById('mobile-menu-btn');
@@ -2003,8 +1993,18 @@ window.guardarConfigGym = function() {
    INITIALIZATION & EXPORTS
 ============================================================ */
 function initApp() {
+    console.log('--- Aura Flow CRM: Initializing ---');
+    
+    // Register Hash Listener IMMEDIATELY
+    window.addEventListener('hashchange', () => {
+        const section = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
+        showSection(section);
+    });
+
     // 1. Initial Data Fetch
     fetchDashboardData().then(() => {
+        console.log('--- Aura Flow CRM: Data Synced ---');
+        
         // 2. Initial Section Load (from Hash)
         const initialSection = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
         showSection(initialSection);
@@ -2012,22 +2012,30 @@ function initApp() {
         // 3. Remove Global Loading after data is ready
         setTimeout(() => {
             const loader = document.getElementById('global-loading');
-            if (loader) loader.style.opacity = '0';
-            setTimeout(() => loader && loader.remove(), 500);
+            if (loader) {
+                loader.style.transition = 'opacity 0.5s ease';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }
         }, 300);
-    });
-
-    // 4. Setup Hash Change Listener (Deep Routing)
-    window.addEventListener('hashchange', () => {
-        const section = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
-        showSection(section);
+    }).catch(err => {
+        console.error('CRITICAL: App Initialization Failed:', err);
+        // Fallback to local data if Supabase fails completely
+        loadDemoData();
+        showSection(window.location.hash ? window.location.hash.substring(1) : 'dashboard');
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// Execute Entry Point
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        initApp();
+    });
+} else {
     setupEventListeners();
     initApp();
-});
+}
 
 // Global Exports
 window.showSection = showSection;

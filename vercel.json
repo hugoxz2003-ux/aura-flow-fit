@@ -29,7 +29,15 @@
       "destination": "/dashboard/index.html"
     },
     {
-      "source": "/dashboard/((?!.*\\.(?:js|css|html|ico|png|jpg|svg|webp|json|txt)$).*)",
+      "source": "/dashboard/(.*).js",
+      "destination": "/dashboard/$1.js"
+    },
+    {
+      "source": "/dashboard/(.*).css",
+      "destination": "/dashboard/$1.css"
+    },
+    {
+      "source": "/dashboard/((?!api|_next|static|[^.]*\\..*$).*)",
       "destination": "/dashboard/index.html"
     },
     {
@@ -41,7 +49,15 @@
       "destination": "/client-app/index.html"
     },
     {
-      "source": "/client-app/((?!.*\\.(?:js|css|html|ico|png|jpg|svg|webp|json|txt)$).*)",
+      "source": "/client-app/(.*).js",
+      "destination": "/client-app/$1.js"
+    },
+    {
+      "source": "/client-app/(.*).css",
+      "destination": "/client-app/$1.css"
+    },
+    {
+      "source": "/client-app/((?!api|_next|static|[^.]*\\..*$).*)",
       "destination": "/client-app/index.html"
     },
     {
