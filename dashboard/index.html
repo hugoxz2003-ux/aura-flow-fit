@@ -7,7 +7,7 @@
     <title>Dashboard Admin - Aura Flow Fit</title>
 
     <!-- Main CSS -->
-    <link rel="stylesheet" href="/shared-styles.css?v=3">
+    <link rel="stylesheet" href="../shared-styles.css?v=99">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1435,9 +1435,9 @@
 
     <!-- Supabase SDK & Config -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/supabase-config.js?v=99"></script>
-    <script src="/dashboard/auth.js?v=99"></script>
-    <script src="/dashboard/dashboard.js?v=99"></script>
+    <script src="../supabase-config.js?v=99"></script>
+    <script src="auth.js?v=99"></script>
+    <script src="dashboard.js?v=99"></script>
     <script>
         // Fix Leads KPI + Chart period filter
         function updateLeadsKPI() {
@@ -1492,18 +1492,24 @@
         }, 500);
 
         // MOBILE MENU TOGGLE
-        (function() {
-            var t = document.getElementById('mobile-menu-toggle');
-            var s = document.getElementById('main-sidebar');
-            var o = document.getElementById('sidebar-overlay');
-            function openS() { if(s) s.classList.add('open'); if(o) o.classList.add('active'); document.body.style.overflow='hidden'; }
-            function closeS() { if(s) s.classList.remove('open'); if(o) o.classList.remove('active'); document.body.style.overflow=''; }
-            if(t) t.addEventListener('click', openS);
-            if(o) o.addEventListener('click', closeS);
-            document.querySelectorAll('.nav-item').forEach(function(i){
-                i.addEventListener('click', function(){ if(window.innerWidth<=768) closeS(); });
-            });
         })();
+
+        // CENTRALIZED NAVIGATION HANDLER
+        window.addEventListener('hashchange', function() {
+            const section = window.location.hash.substring(1) || 'dashboard';
+            console.log('Hash changed to:', section);
+            if (typeof window.showSection === 'function') {
+                window.showSection(section);
+            }
+        });
+
+        // Bootstrap the app
+        window.addEventListener('load', function() {
+            const initialSection = window.location.hash.substring(1) || 'dashboard';
+            if (typeof window.showSection === 'function') {
+                window.showSection(initialSection);
+            }
+        });
     </script>
 
 </html>

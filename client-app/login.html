@@ -148,7 +148,9 @@
                     }));
                     window.location.href = 'index.html';
                 } else {
-                    errorMsg.textContent = 'Modo Demo (Offline): Por favor usa ana@example.com o laura@example.com para probar el sistema.';
+                    errorMsg.innerHTML = `<strong>Error de Conexión o Base Vacía.</strong><br>
+                    Si es tu primera vez, asegúrate de ejecutar el script <code>FINAL_AURA_PRODUCTION_SETUP.sql</code> en tu Supabase SQL Editor.<br><br>
+                    Modo Demo: Usa <code>ana@example.com</code> para entrar sin base de datos.`;
                     errorMsg.style.display = 'block';
                 }
             }

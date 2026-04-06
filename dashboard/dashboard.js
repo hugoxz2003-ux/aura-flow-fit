@@ -779,10 +779,10 @@ function showMemberDashboard(memberId) {
     document.querySelector('.alerts-section').style.display = 'none';
     document.querySelector('.today-classes-section').style.display = 'none';
 
-    let existingDynamic = document.getElementById('dynamic-content');
+    let existingDynamic = document.getElementById('dynamic-module-view');
     if (!existingDynamic) {
         existingDynamic = document.createElement('div');
-        existingDynamic.id = 'dynamic-content';
+        existingDynamic.id = 'dynamic-module-view';
         mainContent.appendChild(existingDynamic);
     }
     
@@ -1880,7 +1880,7 @@ function eliminarEvaluacion(index) {
     const saved = JSON.parse(localStorage.getItem('aura_evaluations') || '[]');
     saved.splice(index, 1);
     localStorage.setItem('aura_evaluations', JSON.stringify(saved));
-    const dyn = document.getElementById('dynamic-content');
+    const dyn = document.getElementById('dynamic-module-view');
     if (dyn) renderEvaluations(dyn);
 }
 
@@ -1992,78 +1992,10 @@ window.guardarConfigGym = function() {
 /* ============================================================
    INITIALIZATION & EXPORTS
 ============================================================ */
-function initApp() {
-    console.log('--- Aura Flow CRM: Initializing ---');
-    
-    // Register Hash Listener IMMEDIATELY
-    window.addEventListener('hashchange', () => {
-        const section = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
-        showSection(section);
-    });
-
-    // 1. Initial Data Fetch
-    fetchDashboardData().then(() => {
-        console.log('--- Aura Flow CRM: Data Synced ---');
-        
-        // 2. Initial Section Load (from Hash)
-        const initialSection = window.location.hash ? window.location.hash.substring(1) : 'dashboard';
-        showSection(initialSection);
-        
-        // 3. Remove Global Loading after data is ready
-        setTimeout(() => {
-            const loader = document.getElementById('global-loading');
-            if (loader) {
-                loader.style.transition = 'opacity 0.5s ease';
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 500);
-            }
-        }, 300);
-    }).catch(err => {
-        console.error('CRITICAL: App Initialization Failed:', err);
-        // Fallback to local data if Supabase fails completely
-        loadDemoData();
-        showSection(window.location.hash ? window.location.hash.substring(1) : 'dashboard');
-    });
-}
-
-// Execute Entry Point
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        setupEventListeners();
-        initApp();
-    });
-} else {
-    setupEventListeners();
-    initApp();
-}
-
-// Global Exports
-window.showSection = showSection;
-window.fetchDashboardData = fetchDashboardData;
-window.showEvalForm = showEvalForm;
-window.guardarEvaluacion = guardarEvaluacion;
-window.calcularIMC = calcularIMC;
-window.updateAttendance = updateAttendance;
-window.renderFreeTrial = renderFreeTrial;
-window.renderWaitlist = renderWaitlist;
-window.renderComunicacion = renderComunicacion;
-window.renderSettings = renderSettings;
-window.renderAttendance = renderAttendance;
-window.showNewLeadForm = () => {
-    window.location.hash = '#leads';
-    setTimeout(() => {
-        const wrap = document.getElementById('lead-form-wrap');
-        if (wrap) wrap.style.display = 'block';
-    }, 200);
-};
-window.handleLogout = () => {
-    localStorage.clear();
-    window.location.href = 'login.html';
-};
-
 // ============================================================
 // INITIALIZATION & EXPORTS
 // ============================================================
+
 function initApp() {
     console.log('--- Aura Flow CRM: Initializing ---');
     
@@ -2102,13 +2034,40 @@ function initApp() {
 window.showSection = showSection;
 window.fetchDashboardData = fetchDashboardData;
 window.initApp = initApp;
+window.showEvalForm = showEvalForm;
+window.guardarEvaluacion = guardarEvaluacion;
+window.calcularIMC = calcularIMC;
+window.updateAttendance = updateAttendance;
+window.renderWaitlist = renderWaitlist;
+window.renderComunicacion = renderComunicacion;
+window.renderSettings = renderSettings;
+window.renderAttendance = renderAttendance;
+window.promoteFromWaitlist = async (id) => {
+    alert('Simulación: Promoviendo socio de lista de espera a reserva activa... 🚀');
+    // In real implementation, this moves record from waitlist to bookings
+};
+window.removeFromWaitlist = async (id) => {
+    if(!confirm('¿Quitar de la lista de espera?')) return;
+    await supabase.from('lista_espera').delete().eq('id', id);
+    fetchDashboardData();
+};
+
+window.handleLogout = () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+};
 
 // Execute Entry Point
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
+    document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        initApp();
+    });
 } else {
+    setupEventListeners();
     initApp();
 }
+
 
 
 

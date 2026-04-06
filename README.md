@@ -1,56 +1,58 @@
-# Aura Flow Fit - Premium Landing Page
+# 🧘 Aura Flow Fit - Sistema Integral de Gestión (CRM + App)
 
-Una landing page "Dark Luxury" diseñada para un gimnasio y estudio de Pilates Reformer exclusivo.
+Bienvenido a la solución definitiva para estudios de Pilates y Gimnasios de Lujo. Este ecosistema está diseñado para ofrecer una experiencia "Premium" desde la captación hasta la retención.
 
-## 🎨 Estilo y Personalización
+## 🚀 Componentes del Sistema
 
-El diseño utiliza una paleta oscura con acentos en color **Calypso (#06B6D4)**.
+### 1. Landing Page Pro (`/landing_page/`)
+- Diseño **Dark Luxury** con acentos **Calypso**.
+- Captación de Leads integrada (Webhook n8n listo).
+- Galería de servicios con efectos 3D y Glassmorphism.
+- Acceso directo para socios y administración.
 
-### Colores Principales
-- **Fondo**: Negro (#000000) y Gris Oscuro (#09090B)
-- **Acento**: Calypso (#06B6D4)
-- **Texto**: Blanco (#FFFFFF) y Gris Claro (#E4E4E7)
+### 2. CRM Dashboard Administrativo (`/dashboard/`)
+- **KPI Real-time**: Ingresos, Socios Activos, Ocupación y Leads.
+- **Gestión de Socios**: Registro, Planes, Vencimientos y Métricas físicas.
+- **Control de Clases**: Agendamiento, cupos automáticos y lista de espera.
+- **Finanzas**: Tracking de pagos y membresías vencidas.
+- **Seguridad**: Autenticación integrada con Supabase.
 
-### Tipografía
-- **Títulos**: Plus Jakarta Sans (Moderna, audaz)
-- **Cuerpo**: Inter (Legible, limpia)
+### 3. App Exclusiva para Socios (`/client-app/`)
+- **PWA Ready**: Se puede instalar en el móvil como una App nativa.
+- **Reservas en 2 Clicks**: Calendario dinámico para agendar clases.
+- **Perfil de Evolución**: Visualización de peso, grasa y músculo.
+- **Notificaciones**: Alertas de cupos liberados y recordatorios.
 
-## 📁 Estructura del Proyecto
+---
 
-```
-/aura_flow_fit
-  ├── index.html      # Estructura principal
-  ├── styles.css      # Estilos y animaciones
-  ├── script.js       # Interacciones (Menú, contadores, flip cards)
-  ├── README.md       # Documentación
-  └── images/         # Carpeta para imágenes (actualmente placeholders)
-```
+## 🛠️ Configuración Inicial (IMPORTANTE)
 
-## 🖼️ Reemplazo de Imágenes (Placeholders)
+Para que el sistema funcione al 100%, debes realizar los siguientes pasos en tu instancia de **Supabase**:
 
-Actualmente la web usa "placeholders" (cuadros de color) porque el servicio de generación de imágenes no estaba disponible. Para completar la web, debes reemplazar las siguientes referencias en el código o añadir los archivos a la carpeta `images/`:
+### Paso 1: Configuración de la Base de Datos
+1. Ve a tu **Supabase SQL Editor**.
+2. Abre el archivo `FINAL_AURA_PRODUCTION_SETUP.sql` ubicado en la raíz del proyecto.
+3. Copia y pega el contenido en el editor de Supabase y dale a **Run**.
+   - *Esto creará las tablas, activará la seguridad (RLS) y cargará datos de prueba (incluyendo a la socia de prueba ana@example.com).*
 
-1.  **Logo**: `images/logo.png` (Tamaño recomendado: 512x512px, fondo transparente)
-2.  **Hero**: `images/hero_visual.png` (Visual 3D abstracto o foto de alta calidad, fondo transparente recomendado)
-3.  **Servicios**:
-    - `images/service_1.png`: Pilates Reformer
-    - `images/service_2.png`: Personal Training
-    - `images/service_3.png`: Wellness & Recovery
-    - `images/service_4.png`: Grupos Exclusivos
-4.  **Showcase**: `images/showcase_1.png` (Interior del gimnasio)
-5.  **Equipo**: `images/about_image.png` (Foto del equipo o instructores)
+### Paso 2: Variables de Entorno
+Asegúrate de que el archivo `supabase-config.js` tenga tu **URL** y **ANON_KEY** correctas.
 
-### Cómo activar las imágenes en HTML
-Busca en `index.html` las líneas comentadas como esta:
-```html
-<!-- <img src="images/service_1.png" ... > -->
-```
-Y descoméntalas (quita `<!--` y `-->`) una vez tengas las imágenes.
+---
 
-## ✨ Características Interactivas
+## 🧪 Datos de Prueba (Modo Demo)
 
-- **Flip Cards**: Pasa el mouse (o toca en móvil) sobre las tarjetas de servicio para ver más detalles.
-- **Glassmorphism**: Efecto de vidrio esmerilado en tarjetas y navbar.
-- **Partículas**: Fondo animado sutil.
-- **Contadores**: Animación de números en la sección Hero.
-- **Responsive**: Adaptado a Móvil, Tablet y Desktop.
+Para probar el sistema de inmediato sin configurar Supabase (Modo Offline/Fallback):
+
+- **Login CRM**: Admin / admin123 (en `dashboard/login.html`)
+- **Login App Socios**: `ana@example.com` (en `client-app/login.html`)
+
+---
+
+## 🖼️ Recursos Visuales
+Las imágenes del sitio han sido generadas específicamente para este proyecto:
+- `images/showcase-pilates.jpg`: Interior de estudio premium.
+- `images/showcase-gym.jpg`: Gimnasio funcional moderno.
+- `images/app-mockup.png`: Mockup de la App de socios.
+
+**© 2026 Aura Flow Fit - Advanced Agentic Coding Delivery**
