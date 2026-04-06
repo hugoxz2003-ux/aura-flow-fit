@@ -7,7 +7,7 @@
     <title>Dashboard Admin - Aura Flow Fit</title>
 
     <!-- Main CSS -->
-    <link rel="stylesheet" href="../shared-styles.css?v=99">
+    <link rel="stylesheet" href="../shared-styles.css?v=101">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1435,81 +1435,14 @@
 
     <!-- Supabase SDK & Config -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../supabase-config.js?v=99"></script>
-    <script src="auth.js?v=99"></script>
+    <script src="../supabase-config.js?v=101"></script>
+    <script src="auth.js?v=101"></script>
     <script src="dashboard.js?v=99"></script>
-    <script>
-        // Fix Leads KPI + Chart period filter
-        function updateLeadsKPI() {
-            const leads = window.dashboardData && window.dashboardData.leads || [];
-            const nuevos = leads.filter(l => l.status === 'Nuevo').length;
-            const el = document.getElementById('kpi-leads-count');
-            const pct = document.getElementById('kpi-leads-pct');
-            const trend = document.getElementById('kpi-leads-trend');
-            if (el) el.textContent = leads.length;
-            if (pct) pct.textContent = leads.length > 0 ? Math.round((nuevos / leads.length) * 100) + '%' : '0%';
-            if (trend) trend.textContent = nuevos + ' nuevos';
-        }
+    <!-- Main Dashboard Script -->
+    <script src="dashboard.js?v=101"></script>
+</body>
 
-        function updateChartPeriod(months) {
-            const m = parseInt(months);
-            const labels = [];
-            const now = new Date();
-            for (let i = m - 1; i >= 0; i--) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                labels.push(d.toLocaleString('es-CL', { month: 'short' }));
-            }
-            const chart = window.revenueChartInstance;
-            if (chart) {
-                chart.data.labels = labels;
-                const fin = window.dashboardData && window.dashboardData.finances || [];
-                const monthlyData = labels.map((_, idx) => {
-                    const d = new Date(now.getFullYear(), now.getMonth() - (m - 1 - idx), 1);
-                    return fin.filter(f => {
-                        const fd = new Date(f.created_at);
-                        return fd.getFullYear() === d.getFullYear() && fd.getMonth() === d.getMonth() && f.amount > 0;
-                    }).reduce((s, f) => s + Number(f.amount), 0);
-                });
-                // If all zeros (demo), generate realistic data
-                const hasRealData = monthlyData.some(v => v > 0);
-                if (!hasRealData) {
-                    const base = 3500000;
-                    chart.data.datasets[0].data = Array.from({ length: m }, (_, i) => base + Math.random() * 1500000 * (i / m));
-                } else {
-                    chart.data.datasets[0].data = monthlyData;
-                }
-                chart.update();
-            }
-        }
+</html>
 
-        // Poll until dashboardData is available then update KPIs
-        let kpiPoll = setInterval(() => {
-            if (window.dashboardData && (window.dashboardData.leads.length > 0 || window.dashboardData.members.length > 0)) {
-                updateLeadsKPI();
-                updateChartPeriod(12);
-                clearInterval(kpiPoll);
-            }
-        }, 500);
-
-        // MOBILE MENU TOGGLE
-        })();
-
-        // CENTRALIZED NAVIGATION HANDLER
-        window.addEventListener('hashchange', function() {
-            const section = window.location.hash.substring(1) || 'dashboard';
-            console.log('Hash changed to:', section);
-            if (typeof window.showSection === 'function') {
-                window.showSection(section);
-            }
-        });
-
-        // Bootstrap the app
-        window.addEventListener('load', function() {
-            const initialSection = window.location.hash.substring(1) || 'dashboard';
-            if (typeof window.showSection === 'function') {
-                window.showSection(initialSection);
-            }
-        });
-    </script>
 
 </html>

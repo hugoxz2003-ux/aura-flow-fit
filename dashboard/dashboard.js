@@ -464,8 +464,14 @@ function showSection(sectionId) {
         if (!mainContent || !pageTitle) return;
 
         // 1. Sidebar Active State
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.toggle('active', item.getAttribute('href') === `#${sectionId}`);
+        console.log('Setting active state for:', sectionId);
+        document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+            const href = item.getAttribute('href');
+            if (href) {
+                const itemSection = href.startsWith('#') ? href.substring(1) : href;
+                const isActive = (itemSection === sectionId) || (sectionId === 'dashboard' && itemSection === '');
+                item.classList.toggle('active', isActive);
+            }
         });
 
         // 2. Manage Display Containers
@@ -603,32 +609,68 @@ function updateKPIs() {
 
     // 1. Ingresos del Mes
     const currentMonthStr = new Date().toISOString().slice(0, 7);
-    const monthlyIncome = dashboardData.finances
+    const monthlyIncome = (dashboardData.finances || [])
         .filter(f => (f.status === 'success' || f.status === 'Pagado') && f.amount > 0 && f.created_at.startsWith(currentMonthStr))
         .reduce((sum, f) => sum + Number(f.amount), 0);
-    const incomeKpi = document.querySelector('.kpi-card:nth-child(1) .kpi-value');
+    const incomeKpi = document.getElementById('kpi-revenue-value');
     if (incomeKpi) incomeKpi.textContent = (monthlyIncome / 1000000).toFixed(1) + 'M';
 
     // 2. Socios Activos
-    const activeMembers = dashboardData.members.filter(m => m.estado === 'Activo').length;
-    const membersKpi = document.querySelector('.kpi-card:nth-child(2) .kpi-value');
+    const activeMembers = (dashboardData.members || []).filter(m => m.estado === 'Activo').length;
+    const membersKpi = document.getElementById('kpi-members-count');
     if (membersKpi) membersKpi.textContent = activeMembers;
 
     // 3. Ocupación Promedio
-    const totalOccupied = dashboardData.classes.reduce((sum, c) => sum + (c.cupos_ocupados || 0), 0);
-    const totalMax = dashboardData.classes.reduce((sum, c) => sum + (c.cupos_max || 10), 0);
+    const totalOccupied = (dashboardData.classes || []).reduce((sum, c) => sum + (c.cupos_ocupados || 0), 0);
+    const totalMax = (dashboardData.classes || []).reduce((sum, c) => sum + (c.cupos_max || 10), 0);
     const avgOccupancy = totalMax > 0 ? Math.round((totalOccupied / totalMax) * 100) : 0;
-    const occKpi = document.querySelector('.kpi-card:nth-child(3) .kpi-value');
+    const occKpi = document.getElementById('kpi-occupancy-value');
     if (occKpi) occKpi.textContent = avgOccupancy + '%';
 
     // 4. Leads Nuevos
-    const newLeads = dashboardData.leads.filter(l => l.status === 'Nuevo').length;
-    const leadsKpi = document.querySelector('.kpi-card:nth-child(4) .kpi-value');
-    if (leadsKpi) leadsKpi.textContent = newLeads;
+    const leads = dashboardData.leads || [];
+    const nuevos = leads.filter(l => l.status === 'Nuevo' || l.status === 'nuevo').length;
+    const leadsKpi = document.getElementById('kpi-leads-count');
+    if (leadsKpi) leadsKpi.textContent = leads.length;
+    
+    const leadsPct = document.getElementById('kpi-leads-pct');
+    if (leadsPct) leadsPct.textContent = leads.length > 0 ? Math.round((nuevos / leads.length) * 100) + '%' : '0%';
 
     // Resync charts with real data if needed
-    setTimeout(initializeCharts, 50);
+    setTimeout(initializeCharts, 100);
 }
+
+window.updateChartPeriod = function(months) {
+    const m = parseInt(months);
+    const labels = [];
+    const now = new Date();
+    for (let i = m - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        labels.push(d.toLocaleString('es-CL', { month: 'short' }));
+    }
+    const chart = window.revenueChartInstance;
+    if (chart) {
+        chart.data.labels = labels;
+        const fin = dashboardData.finances || [];
+        const monthlyData = labels.map((_, idx) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - (m - 1 - idx), 1);
+            return fin.filter(f => {
+                const fd = new Date(f.created_at);
+                return fd.getFullYear() === d.getFullYear() && fd.getMonth() === d.getMonth() && (f.status === 'Pagado' || f.status === 'success');
+            }).reduce((sum, f) => sum + Number(f.amount), 0);
+        });
+
+        // Use demo data if empty
+        const hasRealData = monthlyData.some(v => v > 0);
+        if (!hasRealData) {
+            const base = 3500000;
+            chart.data.datasets[0].data = Array.from({ length: m }, (_, i) => base + Math.random() * 1500000 * (i / m));
+        } else {
+            chart.data.datasets[0].data = monthlyData;
+        }
+        chart.update();
+    }
+};
 
 // Global exposure for modal
 window.showNewMemberModal = function() {
