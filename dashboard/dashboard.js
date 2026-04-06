@@ -446,13 +446,45 @@ function setupEventListeners() {
 // Global exposure for HTML onclicks
 window.showSection = showSection;
 window.handleLogout = () => {
-    if (typeof logout === 'function') {
-        logout();
-    } else {
-        localStorage.clear();
-        window.location.href = 'login.html';
-    }
+    localStorage.clear();
+    window.location.href = 'login.html';
 };
+
+function setupEventListeners() {
+    console.log('--- Setting up Event Listeners ---');
+    
+    // Mobile Menu Toggle
+    const mobileBtn = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('main-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (mobileBtn && sidebar && overlay) {
+        mobileBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        });
+    }
+
+    // Sidebar items click - highlight active state
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            // Remove active from all
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(n => n.classList.remove('active'));
+            // Add to clicked
+            item.classList.add('active');
+
+            if (window.innerWidth < 1024 && sidebar && overlay) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        });
+    });
+}
 
 function showSection(sectionId) {
     try {
@@ -2100,15 +2132,14 @@ window.handleLogout = () => {
 };
 
 // Execute Entry Point
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+    try {
         setupEventListeners();
         initApp();
-    });
-} else {
-    setupEventListeners();
-    initApp();
-}
+    } catch (err) {
+        console.error('App init crash:', err);
+    }
+});
 
 
 
