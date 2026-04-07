@@ -85,8 +85,7 @@ function checkAuth() {
     if (!sessionStr) {
         console.warn('Aura Auth: No hay sesión activa. Redirigiendo a portal de acceso.');
         // If in dashboard or client-app, redirect to root login or local login
-        const depth = window.location.pathname.split('/').length;
-        const target = depth > 2 ? '../login.html' : 'login.html';
+        const target = 'login.html';
         safeRedirect(target);
         return;
     }
