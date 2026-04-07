@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Aura Flow Fit</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/shared-styles.css">
+
+    <style>
+        :root {
+            /* Override for specific dashboard needs if any, else use variables from shared-styles.css */
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap');
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-main);
+            color: var(--text-high);
+            overflow-x: hidden;
+        }
+
+        /* === MODERN SIDEBAR v2.0 === */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; width: var(--sidebar-width); height: 100vh;
+            background: rgba(15, 15, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column;
+            padding: 2rem 1.25rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            margin-bottom: 3rem;
+            padding: 0 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .sidebar-header h1 {
+            font-family: var(--font-titles);
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-white);
+            margin-bottom: 4px;
+        }
+
+        .logo-subtitle {
+            font-size: 0.65rem;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 12px 16px; border-radius: 12px;
+            color: var(--text-medium);
+            text-decoration: none; font-size: 0.9rem;
+            font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-white);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15) 0%, transparent 100%);
+            color: var(--primary);
+            font-weight: 600;
+            border-left: 2px solid var(--primary);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover .nav-icon {
+            opacity: 1;
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 5px var(--primary-glow));
+        }
+
+        .nav-divider {
+            height: 1px; background: rgba(255,255,255,0.05);
+            margin: 1.5rem 0;
+        }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            min-height: 100vh;
+            padding: 2rem;
+            background: var(--bg-primary);
+        }
+
+        /* === HEADER === */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            width: 220px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+        }
+
+        .icon-btn {
+            position: relative;
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 16px;
+            height: 16px;
+            background: var(--error);
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.75rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .user-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* === KPI GRID === */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .kpi-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .kpi-chart-container {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+
+        .kpi-chart {
+            width: 56px;
+            height: 56px;
+        }
+
+        .kpi-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .kpi-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .kpi-trend {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .kpi-trend svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .kpi-trend.positive {
+            color: var(--success);
+        }
+
+        .kpi-trend.negative {
+            color: var(--error);
+        }
+
+        .kpi-comparison {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* === CHARTS === */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .chart-filter {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            outline: none;
+        }
+
+        /* CRITICAL: Fixed height for chart canvas containers */
+        .chart-canvas-wrapper {
+            height: 220px;
+            position: relative;
+        }
+
+        /* === ALERTS === */
+        .alerts-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .alert-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border-left: 3px solid var(--primary);
+        }
+
+        .alert-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .alert-card.info {
+            border-left-color: var(--info);
+        }
+
+        .alert-card.error {
+            border-left-color: var(--error);
+        }
+
+        .alert-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .alert-card.warning .alert-icon {
+            color: var(--warning);
+        }
+
+        .alert-card.info .alert-icon {
+            color: var(--info);
+        }
+
+        .alert-card.error .alert-icon {
+            color: var(--error);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-content h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .alert-content p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* === RECENT BOOKINGS === */
+        .recent-bookings-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .booking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+
+        .booking-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .booking-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .booking-details h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .booking-details p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* === TODAY'S CLASSES TABLE === */
+        .today-classes-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .classes-table {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .occupancy-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .occupancy-track {
+            width: 80px;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .occupancy-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: var(--radius-full);
+            transition: width 0.3s ease;
+        }
+
+        .occupancy-fill.full {
+            background: var(--error);
+        }
+
+        /* === BADGES === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+        }
+
+        /* Plan badges */
+        .plan-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* === UTILITY === */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .gap-sm {
+            gap: 0.5rem;
+        }
+
+        .gap-md {
+            gap: 1rem;
+        }
+
+        .gap-lg {
+            gap: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .grid-cols-7 {
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .p-sm {
+            padding: 0.5rem;
+        }
+
+        .p-md {
+            padding: 1rem;
+        }
+
+        .p-lg {
+            padding: 1.5rem;
+        }
+
+        .p-xl {
+            padding: 2rem;
+        }
+
+        .p-0 {
+            padding: 0;
+        }
+
+        .mb-md {
+            margin-bottom: 1rem;
+        }
+
+        .mb-lg {
+            margin-bottom: 1.5rem;
+        }
+
+        .mb-xl {
+            margin-bottom: 2rem;
+        }
+
+        .mb-2xl {
+            margin-bottom: 3rem;
+        }
+
+        .mt-xs {
+            margin-top: 0.25rem;
+        }
+
+        .mt-sm {
+            margin-top: 0.5rem;
+        }
+
+        .mt-md {
+            margin-top: 1rem;
+        }
+
+        .font-600 {
+            font-weight: 600;
+        }
+
+        .font-700 {
+            font-weight: 700;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xl {
+            font-size: 1.25rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-primary {
+            color: var(--text-primary);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .text-success {
+            color: var(--success);
+        }
+
+        .text-warning {
+            color: var(--warning);
+        }
+
+        .text-error {
+            color: var(--error);
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .border-b {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .border-white-05 {
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .border-warning {
+            border-color: var(--warning) !important;
+        }
+
+        .rounded-xl {
+            border-radius: var(--radius-lg);
+        }
+
+        .opacity-60 {
+            opacity: 0.6;
+        }
+
+        .bg-white-05 {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .bg-tertiary {
+            background: var(--bg-tertiary);
+        }
+
+        .uppercase {
+            text-transform: uppercase;
+        }
+
+        /* === UTILITIES & SCROLLBAR === */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(6, 182, 212, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* === RESPONSIVE AURA v2.0 === */
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; padding: 2rem 0.5rem; }
+            .sidebar-header h1, .logo-subtitle, .nav-item span { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .main-content { margin-left: 80px; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-header h1, .logo-subtitle, .nav-item span { display: block; }
+            .nav-item { justify-content: flex-start; }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>AURA <span style="color:var(--primary);">FLOW</span></h1>
+                <span class="logo-subtitle" id="logo-role-tag">PRODUCTION SYSTEMS</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#dashboard" id="nav-dashboard" class="nav-item active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="#calendar" id="nav-calendar" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <span>Clases</span>
+                </a>
+
+                <a href="#plans" id="nav-plans" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                    <span>Planes</span>
+                </a>
+
+                <a href="#members" id="nav-members" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                        </path>
+                    </svg>
+                    <span>Socios</span>
+                </a>
+
+                <a href="#leads" id="nav-leads" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    <span>Leads</span>
+                </a>
+
+                <a href="#finances" id="nav-finances" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                    <span>Finanzas</span>
+                </a>
+
+                <a href="#evaluations" id="nav-evaluations" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                    <span>Evaluaciones</span>
+                </a>
+
+                <a href="#attendance" id="nav-attendance" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                        </path>
+                    </svg>
+                    <span>Asistencia</span>
+                </a>
+
+                <a href="#freetrial" id="nav-freetrial" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Pruebas Gratis</span>
+                </a>
+
+                <a href="#comunicacion" id="nav-comunicacion" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                    <span>Comunicación</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="#settings" id="nav-settings" class="nav-item">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div>
+                    <h2 class="page-title">Dashboard</h2>
+                    <p class="page-subtitle greeting">Cargando perfil...</p>
+                </div>
+
+                <div class="header-right">
+                    <button id="mobile-menu-toggle" class="icon-btn" style="display:none;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <div class="search-box">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" placeholder="Buscar..." class="search-input">
+                    </div>
+
+                    <button class="icon-btn">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                            </path>
+                        </svg>
+                        <span class="notification-badge">3</span>
+                    </button>
+
+                    <div class="user-menu" onclick="handleLogout()" title="Cerrar sesión">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=06B6D4&color=fff" alt="Admin"
+                            class="user-avatar">
+                        <span class="user-name">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="dashboard-view" class="dashboard-home">
+                <!-- KPI Cards (shown on Dashboard view) -->
+                <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div>
+                            <p class="kpi-label">Ingresos del Mes</p>
+                            <h3 class="kpi-value">$0</h3>
+                        </div>
+                        <div class="kpi-chart-container">
+                            <svg class="kpi-chart" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--bg-tertiary)"
+                                    stroke-width="10" />
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--primary)" stroke-width="10"
+                                    stroke-dasharray="263.9" stroke-dashoffset="65.97" transform="rotate(-90 50 50)"
+                                    stroke-linecap="round" />
+                            </svg>
+                            <span class="kpi-percentage">75%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-trend positive">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                            </svg>
+                            +12.5%
+                        </span>
+                        <span class="kpi-comparison">vs mes anterior</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div>
+                            <p class="kpi-label">Socios Activos</p>
+                            <h3 class="kpi-value">0</h3>
+                        </div>
+                        <div class="kpi-chart-container">
+                            <svg class="kpi-chart" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--bg-tertiary)"
+                                    stroke-width="10" />
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--success)" stroke-width="10"
+                                    stroke-dasharray="263.9" stroke-dashoffset="39.6" transform="rotate(-90 50 50)"
+                                    stroke-linecap="round" />
+                            </svg>
+                            <span class="kpi-percentage">85%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-trend positive">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                            </svg>
+                            Cargando...
+                        </span>
+                        <span class="kpi-comparison">este mes</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div>
+                            <p class="kpi-label">Ocupación Promedio</p>
+                            <h3 class="kpi-value">0%</h3>
+                        </div>
+                        <div class="kpi-chart-container">
+                            <svg class="kpi-chart" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--bg-tertiary)"
+                                    stroke-width="10" />
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--warning)" stroke-width="10"
+                                    stroke-dasharray="263.9" stroke-dashoffset="58.1" transform="rotate(-90 50 50)"
+                                    stroke-linecap="round" />
+                            </svg>
+                            <span class="kpi-percentage">78%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-trend positive">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                            </svg>
+                            +5%
+                        </span>
+                        <span class="kpi-comparison">vs semana pasada</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <div>
+                            <p class="kpi-label">Leads Nuevos</p>
+                            <h3 class="kpi-value" id="kpi-leads-count">0</h3>
+                        </div>
+                        <div class="kpi-chart-container">
+                            <svg class="kpi-chart" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--bg-tertiary)"
+                                    stroke-width="10" />
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--info)" stroke-width="10"
+                                    stroke-dasharray="263.9" stroke-dashoffset="26.4" transform="rotate(-90 50 50)"
+                                    stroke-linecap="round" />
+                            </svg>
+                            <span class="kpi-percentage" id="kpi-leads-pct">0%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span class="kpi-trend positive">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                            </svg>
+                            <span id="kpi-leads-trend">Este mes</span>
+                        </span>
+                        <span class="kpi-comparison">vs mes anterior</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Ingresos vs Objetivo</h3>
+                        <select class="chart-filter" id="chart-period-select" onchange="updateChartPeriod(this.value)">
+                            <option value="1">Último 1 mes</option>
+                            <option value="3">Últimos 3 meses</option>
+                            <option value="6">Últimos 6 meses</option>
+                            <option value="12" selected>Últimos 12 meses</option>
+                        </select>
+                    </div>
+                    <div class="chart-canvas-wrapper">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Ocupación por Clase</h3>
+                    </div>
+                    <div class="chart-canvas-wrapper">
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="alerts-section">
+                <h3 class="section-title">Alertas y Notificaciones</h3>
+                <div class="alerts-grid">
+                    <div class="alert-card warning">
+                        <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        <div class="alert-content">
+                            <h4>Membresías vencen esta semana</h4>
+                            <p>Contactar para renovación</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showSection('members')">Ver</button>
+                    </div>
+
+                    <div class="alert-card info">
+                        <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="alert-content">
+                            <h4>Clase Reformer 9AM completa</h4>
+                            <p>Listas de espera activas</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showSection('waitlist')">Ver</button>
+                    </div>
+
+                    <div class="alert-card error">
+                        <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="alert-content">
+                            <h4>Nuevos Leads sin contactar</h4>
+                            <p>Requiere seguimiento urgente</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="showSection('leads')">Ver</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bookings -->
+            <div class="recent-bookings-section mb-2xl">
+                <h3 class="section-title">Reservas Recientes</h3>
+                <div class="glass-card overflow-hidden">
+                    <div id="recent-bookings-list">
+                        <p class="p-lg text-muted text-center">Cargando reservas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Classes -->
+            <div class="today-classes-section">
+                <h3 class="section-title">Clases de Hoy</h3>
+                <div class="classes-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Clase</th>
+                                <th>Instructor</th>
+                                <th>Ocupación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="today-classes-body">
+                            <tr>
+                                <td colspan="5" class="text-center p-lg">
+                                    <div class="spinner" style="margin: 0 auto;"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Dynamic Content Area for Modules -->
+            <div id="dynamic-content" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/supabase-config.js"></script>
+    <script src="/dashboard/auth.js"></script>
+    <script src="/dashboard/dashboard.js?v=fixed_ultimate_v10"></script>
+    <script src="/dashboard/auditor.js"></script>
+
+    <script>
+        // --- AURA FLOW FIT: FAILSAFE ROUTER ---
+        // This ensures clicking sidebar links ALWAYS works, even if dashboard.js fails
+        window.addEventListener('hashchange', () => {
+            const target = window.location.hash.substring(1) || 'dashboard';
+            console.info('Aura Router (Inline):', target);
+            if (typeof window.showSection === 'function') {
+                window.showSection(target);
+            } else {
+                console.warn('Aura: showSection not available yet.');
+            }
+        });
+
+        // Intercept clicks on sidebar to handle cases where hashchange might be slow
+        document.addEventListener('click', (e) => {
+            const navItem = e.target.closest('.nav-item');
+            if (navItem && navItem.getAttribute('href')?.startsWith('#')) {
+                const target = navItem.getAttribute('href').substring(1);
+                console.info('Aura Sidebar Click:', target);
+                // Active class handled by showSection later
+            }
+        });
+    </script>
+    <script>
+        // Fix Leads KPI + Chart period filter
+        function updateLeadsKPI() {
+            const leads = window.dashboardData && window.dashboardData.leads || [];
+            const nuevos = leads.filter(l => l.status === 'Nuevo').length;
+            const el = document.getElementById('kpi-leads-count');
+            const pct = document.getElementById('kpi-leads-pct');
+            const trend = document.getElementById('kpi-leads-trend');
+            if (el) el.textContent = leads.length;
+            if (pct) pct.textContent = leads.length > 0 ? Math.round((nuevos / leads.length) * 100) + '%' : '0%';
+            if (trend) trend.textContent = nuevos + ' nuevos';
+        }
+
+        function updateChartPeriod(months) {
+            const m = parseInt(months);
+            const labels = [];
+            const now = new Date();
+            for (let i = m - 1; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                labels.push(d.toLocaleString('es-CL', { month: 'short' }));
+            }
+            const chart = window.revenueChartInstance;
+            if (chart) {
+                chart.data.labels = labels;
+                const fin = window.dashboardData && window.dashboardData.finances || [];
+                const monthlyData = labels.map((_, idx) => {
+                    const d = new Date(now.getFullYear(), now.getMonth() - (m - 1 - idx), 1);
+                    return fin.filter(f => {
+                        const fd = new Date(f.created_at);
+                        return fd.getFullYear() === d.getFullYear() && fd.getMonth() === d.getMonth() && f.amount > 0;
+                    }).reduce((s, f) => s + Number(f.amount), 0);
+                });
+                // If all zeros (demo), generate realistic data
+                const hasRealData = monthlyData.some(v => v > 0);
+                if (!hasRealData) {
+                    const base = 3500000;
+                    chart.data.datasets[0].data = Array.from({ length: m }, (_, i) => base + Math.random() * 1500000 * (i / m));
+                } else {
+                    chart.data.datasets[0].data = monthlyData;
+                }
+                chart.update();
+            }
+        }
+
+        // Redundant Polling Removed for Stability: 2026-04-03
+    </script>
+    <script>
+        // Emergency Failsafe: Remove any loading screen after 10s if the main script fails
+        setTimeout(() => {
+            const overlay = document.getElementById('global-loading');
+            if (overlay) {
+                console.warn('Emergency cleanup: Removing global-loading overlay.');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 500);
+            }
+        }, 10000);
+    </script>
+</body>
+
+</html>

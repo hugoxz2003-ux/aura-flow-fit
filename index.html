@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Aura Flow Fit | Portal Unificado</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #06B6D4;
+            --primary-hover: #0891B2;
+            --bg: #09090B;
+            --card-bg: rgba(24, 24, 27, 0.8);
+            --text-main: #FFFFFF;
+            --text-dim: #A1A1AA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Abstract Background Decoration */
+        .glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+        .glow-1 { top: -100px; left: -100px; }
+        .glow-2 { bottom: -100px; right: -100px; }
+
+        .portal-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 56px;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: block;
+            letter-spacing: 2px;
+        }
+
+        .logo-tag {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 48px;
+            display: block;
+        }
+
+        .welcome-text {
+            margin-bottom: 40px;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #E4E4E7;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 17px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .footer-links {
+            margin-top: 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .link-secondary {
+            font-size: 13px;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .link-secondary:hover {
+            color: var(--primary);
+        }
+
+        .copyright {
+            font-size: 11px;
+            color: #52525B;
+            margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <div class="portal-card">
+        <span class="logo">AURA FLOW FIT</span>
+        <span class="logo-tag">Premium Experience</span>
+        
+        <p class="welcome-text">
+            Bienvenido al centro de gestión y reservas de <strong>Aura</strong>. 
+            Selecciona tu perfil para continuar.
+        </p>
+
+        <div class="btn-group">
+            <a href="/dashboard/login.html" class="btn btn-primary">
+                🖥️ Panel Admin / Staff
+            </a>
+            <a href="/client-app/login.html" class="btn btn-outline">
+                📱 App de Socios (PWA)
+            </a>
+        </div>
+        
+        <div class="footer-links">
+            <a href="/landing_page/index.html" class="link-secondary">Volver a la Web Principal</a>
+            <div class="copyright">
+                &copy; 2026 Aura Flow Fit. Todos los derechos reservados.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

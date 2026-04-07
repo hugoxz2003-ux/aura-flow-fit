@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura Flow Fit - Socios</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#18181B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/client-app/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/shared-styles.css">
+    <link rel="stylesheet" href="/client-app/client.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+        <!-- Top Header Aura v2.0 -->
+        <header class="app-header glass-card" style="border:none; border-bottom:1px solid var(--glass-border); border-radius:0;">
+            <div class="user-greeting">
+                <div class="flex items-center gap-sm mb-xs">
+                    <span class="text-xl">✨</span>
+                    <span style="font-family:var(--font-titles); font-weight:800; letter-spacing:-0.5px; color:var(--text-white);">AURA FLOW</span>
+                </div>
+                <p class="greeting" style="font-family:var(--font-titles); font-size:1.1rem; color:var(--text-white);">Hola, <span id="user-name" style="color:var(--primary);">María</span> 👋</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="notif-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- Summary Card -->
+            <section id="home-view" class="view active">
+                <div class="summary-card glass-card mb-lg">
+                    <div class="card-content" id="next-booking-container">
+                        <div class="next-class">
+                            <p class="label">Próxima Clase</p>
+                            <h3 class="value">Cargando...</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="my-bookings-section" class="mb-lg">
+                    <h3 class="text-lg font-600 mb-md">Mis Reservas Activas</h3>
+                    <div id="my-bookings-list" class="grid gap-sm">
+                        <!-- Bookings will be rendered here -->
+                        <p class="text-muted text-sm px-md">Buscando tus clases...</p>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid grid grid-cols-2 gap-md mb-lg">
+                    <div class="card p-md border-primary-20">
+                        <p class="text-muted text-xs">Clases Disponibles</p>
+                        <h4 class="text-xl" id="user-credits">--</h4>
+                        <p class="text-primary text-xs" id="user-plan-label">Plan --</p>
+                    </div>
+                    <div class="card p-md">
+                        <p class="text-muted text-xs">Próximo Vencimiento</p>
+                        <h4 class="text-xl" id="days-remaining">-- días</h4>
+                        <p class="text-warning text-xs" id="expiry-date">-- --</p>
+                    </div>
+                </div>
+
+                <!-- Body Metrics Summary (NEW) -->
+                <div id="metrics-summary" class="mb-lg">
+                    <div class="flex justify-between items-center mb-md">
+                        <h3 class="text-lg font-600">Estado Físico</h3>
+                        <span class="text-muted text-xs">Actualizado hoy</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-sm">
+                        <div class="metric-mini-card card p-sm flex items-center gap-md">
+                            <div class="metric-icon" style="background: rgba(34, 197, 94, 0.1); color: #22C55E;">⚖️
+                            </div>
+                            <div>
+                                <p class="text-muted text-xs">Peso</p>
+                                <p class="text-md font-600" id="home-peso">-- kg</p>
+                            </div>
+                        </div>
+                        <div class="metric-mini-card card p-sm flex items-center gap-md">
+                            <div class="metric-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">🔥
+                            </div>
+                            <div>
+                                <p class="text-muted text-xs">% Grasa</p>
+                                <p class="text-md font-600" id="home-grasa">-- %</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity/History -->
+                <section id="recent-activity">
+                    <div class="section-header flex justify-between items-center mb-md">
+                        <h3 class="text-lg font-600">Tu Actividad</h3>
+                        <a href="#" class="text-primary text-sm"
+                            onclick="showNotification('Historial detallado próximamente', 'info')">Ver historial</a>
+                    </div>
+                    <div class="activity-card glass-card p-md mb-lg">
+                        <div class="flex items-center gap-md mb-sm">
+                            <div class="status-dot success"></div>
+                            <p class="text-sm">Asististe a Pilates Reformer <span class="text-muted">• Ayer</span></p>
+                        </div>
+                        <div class="flex items-center gap-md">
+                            <div class="status-dot info"></div>
+                            <p class="text-sm">Nueva meta alcanzada: 12 clases <span class="text-muted">• Mar</span></p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Progress View (Metrics Detail) -->
+            <section id="progress-view" class="view">
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Antropometría y Evolución</h3>
+                    <p class="text-sm text-muted">Tus medidas registradas por el equipo Aura.</p>
+                </div>
+
+                <div class="grid gap-md mb-xl">
+                    <div class="card glass-card p-lg flex justify-between items-center">
+                        <div class="flex items-center gap-lg">
+                            <div class="metric-icon-lg">⚖️</div>
+                            <div>
+                                <p class="text-muted text-sm">Peso Actual</p>
+                                <h2 class="text-2xl font-700" id="prog-peso">-- kg</h2>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-muted">Estatura</p>
+                            <p class="font-600" id="prog-estatura">-- cm</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-md">
+                        <div class="card glass-card p-lg">
+                            <p class="text-muted text-xs uppercase mb-sm">Masa Grasa</p>
+                            <h3 class="text-2xl font-700 text-warning" id="prog-grasa">--%</h3>
+                            <div class="progress-bar-sm mt-sm">
+                                <div class="fill warning" style="width: 0%" id="bar-grasa"></div>
+                            </div>
+                        </div>
+                        <div class="card glass-card p-lg">
+                            <p class="text-muted text-xs uppercase mb-sm">Masa Muscular</p>
+                            <h3 class="text-2xl font-700 text-success" id="prog-musculo">--%</h3>
+                            <div class="progress-bar-sm mt-sm">
+                                <div class="fill success" style="width: 0%" id="bar-musculo"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Planilla de Entrenamiento</h3>
+                </div>
+                <div class="card glass-card p-lg">
+                    <div class="flex items-center gap-md mb-lg">
+                        <div class="workout-icon">🏋️</div>
+                        <div>
+                            <h4 class="font-600">Fuerza & Hipertrofia</h4>
+                            <p class="text-xs text-muted">Nivel Intermedio • 4 días/sem</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-sm">
+                        <button class="btn btn-secondary flex-1" onclick="downloadPlanilla()">Planilla PDF</button>
+                        <button id="gym-eval-btn" class="btn btn-primary flex-1" style="display: none;"
+                            onclick="showNotification('Solicitud de evaluación enviada. Un instructor te contactará.', 'success')">Agendar
+                            Eval.</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Classes Booking View -->
+            <section id="booking-view" class="view">
+                <div class="section-header mb-md flex justify-between items-center">
+                    <h3 class="text-lg font-600">Agendar Clase</h3>
+                    <span id="calendar-month-header" class="text-xs font-700 uppercase tracking-widest text-primary"></span>
+                </div>
+                <div class="calendar-strip mb-md flex items-center gap-sm">
+                    <button id="prev-day" class="calendar-nav-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <!-- Day selection scrolling container -->
+                    <div class="days-container flex-1 flex gap-sm overflow-x-auto hide-scrollbar" id="calendar-days">
+                        <!-- Dynamic days will be rendered here -->
+                    </div>
+                    <button id="next-day" class="calendar-nav-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+                <div class="available-classes grid gap-md" id="booking-classes-container">
+                    <p class="text-center p-lg text-muted">Cargando clases disponibles...</p>
+                </div>
+            </section>
+            <!-- Profile/Membership View -->
+            <section id="profile-view" class="view">
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Mi Membresía</h3>
+                </div>
+                <div class="membership-card premium-card mb-lg overflow-hidden">
+                    <div class="premium-pattern"></div>
+                    <div class="p-lg relative">
+                        <div class="flex justify-between items-start mb-xl">
+                            <div>
+                                <span class="text-xs font-700 uppercase tracking-widest opacity-70">Socio VIP</span>
+                                <h2 class="text-2xl font-800 mt-xs" id="profile-plan-name">Cargando...</h2>
+                            </div>
+                            <div id="profile-status-badge" class="badge-premium">--</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-lg mb-xl">
+                            <div>
+                                <p class="text-xs opacity-70 uppercase font-700">Clases Mensuales</p>
+                                <p class="text-lg font-600" id="profile-clases-totales">--</p>
+                            </div>
+                            <div>
+                                <p class="text-xs opacity-70 uppercase font-700">Restantes</p>
+                                <p class="text-lg font-800 text-primary-light" id="profile-clases-restantes">--</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-end border-t border-white-10 pt-md">
+                            <div>
+                                <p class="text-xs opacity-70">Próximo Cobro</p>
+                                <p class="font-600" id="profile-vencimiento-date">--/--/--</p>
+                            </div>
+                            <div class="text-xs font-700">MARZO 2024</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-full mb-xl" id="renew-btn">Renovar Planes</button>
+
+                <div class="section-header mb-md">
+                    <h3 class="text-lg font-600">Configuración</h3>
+                </div>
+                <div class="grid gap-md">
+                    <button class="btn btn-secondary w-full justify-start"
+                        onclick="showNotification('Ajustes de notificaciones próximamente', 'info')">Notificaciones</button>
+                    <button class="btn btn-secondary w-full justify-start"
+                        onclick="showNotification('Gestión de pagos próximamente', 'info')">Método de Pago</button>
+                    <button class="btn btn-error w-full mt-lg" onclick="handleLogout()">Cerrar Sesión</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation Aura v2.0 -->
+        <nav class="app-nav glass-card" style="border:none; border-top:1px solid var(--glass-border); border-radius:0; height:80px; padding-bottom:15px;">
+            <a href="#home" class="nav-btn active" data-view="home-view">
+                <svg fill="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span style="font-size:0.65rem; font-weight:700; margin-top:4px;">INICIO</span>
+            </a>
+            <a href="#booking" class="nav-btn" data-view="booking-view">
+                <svg fill="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;">
+                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                </svg>
+                <span style="font-size:0.65rem; font-weight:700; margin-top:4px;">AGENDA</span>
+            </a>
+            <a href="#progress" class="nav-btn" data-view="progress-view">
+                <svg fill="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                <span style="font-size:0.65rem; font-weight:700; margin-top:4px;">BODY</span>
+            </a>
+            <a href="#profile" class="nav-btn" data-view="profile-view">
+                <svg fill="currentColor" viewBox="0 0 24 24" style="width:24px;height:24px;">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                <span style="font-size:0.65rem; font-weight:700; margin-top:4px;">PERFIL</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/supabase-config.js"></script>
+
+    <script src="/client-app/client.js?v=fixed_credits_v3"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js');
+            });
+        }
+    </script>
+    <script>
+        // Emergency Failsafe: Remove any loading screen after 10s if the main script fails
+        setTimeout(() => {
+            const overlay = document.getElementById('app-loading-overlay');
+            if (overlay) {
+                console.warn('Emergency cleanup: Removing app-loading-overlay.');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 500);
+            }
+        }, 10000);
+    </script>
+</body>
+
+</html>

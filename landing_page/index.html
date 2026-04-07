@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Flow Fit | Pilates Reformer & Gimnasio Exclusivo en Las Condes</title>
+    <meta name="description"
+        content="Eleva tu bienestar en Aura Flow Fit. Pilates Reformer, entrenamiento de alta gama y recuperación premium en Las Condes, a pasos de Escuela Militar. Reserva tu clase hoy.">
+
+    <!-- Open Graph / SEO -->
+    <meta property="og:title" content="Aura Flow Fit | Bienestar Exclusivo en Las Condes">
+    <meta property="og:description" content="Pilates Reformer y entrenamiento de alto nivel.">
+    <meta property="og:url" content="https://auraflow.cl">
+    <meta property="og:type" content="website">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Particles Background -->
+    <div id="particles-container"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <img src="/images/nuevo_logo_transparente.png" alt="Aura Flow Fit Logo" class="brand-logo"
+                    style="max-height: 60px; width: auto; object-fit: contain;">
+                <span class="logo-text">AURA FLOW FIT</span>
+            </a>
+
+            <div class="nav-links">
+                <a href="#servicios" class="nav-link">Servicios</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
+                <a href="../client-app/login.html" class="nav-link" style="color:var(--primary); font-weight:700; border:1px solid var(--primary); padding: 5px 15px; border-radius: 20px;">Acceso Socios</a>
+            </div>
+
+
+            <button class="mobile-menu-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <a href="#servicios" class="mobile-link">Servicios</a>
+        <a href="#contacto" class="mobile-link">Contacto</a>
+        <a href="../client-app/login.html" class="mobile-link" style="color:var(--primary);">Acceso Socios</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <div class="hero-label">
+                    <span class="label-icon">✨</span>
+                    <span class="label-text">EXCLUSIVIDAD EN LAS CONDES</span>
+                </div>
+                <h1 class="hero-title">
+                    Eleva tu <span class="text-gradient">Cuerpo</span><br>
+                    Y tu <span class="text-gradient">Espíritu</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Pilates Reformer y entrenamiento de alta gama a una cuadra de Escuela Militar.
+                    Donde el lujo se encuentra con el rendimiento.
+                </p>
+                <div class="hero-actions">
+                    <a href="#contacto" class="btn btn-primary glow-primary">Reservar Clase</a>
+                    <a href="#servicios" class="btn btn-outline">Ver Servicios</a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="25">0</span>
+                        <span class="stat-label">Ser Socio Fundador</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="15">0</span>
+                        <span class="stat-label">Expertos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="sphere-container">
+                    <div class="sphere">
+                        <!-- Neon Ring SVG -->
+                        <svg class="neon-ring-svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="48" fill="none" stroke="url(#neonGradient)" stroke-width="2" />
+                            <defs>
+                                <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ff2d75; stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#06B6D4; stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#ff2d75; stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="sphere-inner" style="background: url('../images/hero-silhouette.png') center/cover;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="social-proof">
+        <div class="container">
+            <p class="section-label-center">EXPERIENCIA RESPALDADA POR LA EXCELENCIA</p>
+            <div class="logos-grid">
+                <div class="logo-item">AESTHETIX</div>
+                <div class="logo-item">PILATES PRO</div>
+                <div class="logo-item">ELITE TECH</div>
+                <div class="logo-item">WELLNESS CHILE</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicios" class="section services">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Nuestros Servicios <span class="text-gradient">Premium</span></h2>
+                <p class="section-subtitle">Diseñados para transformar tu bienestar con la máxima exclusividad.</p>
+            </div>
+
+            <div class="services-grid">
+                <!-- Service 1: Pilates -->
+                <div class="service-card-flip reveal">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../images/reformer-final.jpg') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Pilates Reformer</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Pilates Reformer</h3>
+                            <p class="service-description">Equipamiento de última generación para fortalecer tu núcleo.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 2: Strength -->
+                <div class="service-card-flip reveal">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../images/gym-final.jpg') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Entrenamiento Musculación</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Musculación</h3>
+                            <p class="service-description">Zona de entrenamiento de fuerza con equipamiento de alta
+                                gama.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 3: Groups -->
+                <div class="service-card-flip reveal">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../images/hero-gym-dark.jpg') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Grupos Exclusivos</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Clases Grupales</h3>
+                            <p class="service-description">Sesiones personalizadas en grupos reducidos para máxima
+                                atención.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 4: Wellness -->
+                <div class="service-card-flip reveal">
+                    <div class="service-card-inner">
+                        <div class="service-card-front"
+                            style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../images/wellness-recovery.jpg') center/cover;">
+                            <div class="service-overlay">
+                                <h3 class="service-title-front">Wellness & Recovery</h3>
+                            </div>
+                        </div>
+                        <div class="service-card-back glass-card">
+                            <h3 class="service-title-back">Recuperación</h3>
+                            <p class="service-description">Espacios de relajación y cuidado integral post-entrenamiento.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience/Showcase Section -->
+    <section id="experiencia" class="section experience">
+        <div class="container">
+            <div class="experience-grid">
+                <div class="experience-content">
+                    <h2 class="section-title">La Experiencia <br><span class="text-gradient">Aura Flow</span></h2>
+                    <p class="section-desc">
+                        Cada detalle en Aura Flow Fit ha sido pensado para ofrecerte un santuario de bienestar en medio
+                        de la ciudad.
+                        Desde la iluminación hasta la calidad del aire, todo está diseñado para potenciar tu
+                        rendimiento.
+                    </p>
+                    <ul class="feature-list">
+                        <li>
+                            <span class="check-icon">✓</span>
+                            <span>Equipamiento Premium Importado</span>
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            <span>Amenities de Lujo en Vestidores</span>
+                        </li>
+                        <li>
+                            <span class="check-icon">✓</span>
+                            <span>Ubicación Privilegiada en Las Condes</span>
+                        </li>
+                    </ul>
+                    <a href="#contacto" class="btn btn-primary">Conocer Instalaciones</a>
+                </div>
+                <div class="experience-visual">
+                    <div class="glass-card showcase-card"
+                        style="background: url('../images/flow-experience.jpg') center/cover;">
+                        <div class="showcase-info">
+                            <span class="showcase-label">Espacios Diseñados</span>
+                            <h3>Ambiente Inspirador</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="nosotros" class="section about">
+        <div class="container about-container">
+            <div class="about-image-wrapper">
+                <img src="../images/showcase-studio-v7.jpg" alt="Team Aura" class="about-image">
+                <div class="about-circle-decoration"></div>
+            </div>
+            <div class="about-content">
+                <span class="label-text-calypso">SOBRE NOSOTROS</span>
+                <h2 class="section-title">Expertos en <span class="text-gradient">Movimiento</span></h2>
+                <p>
+                    En Aura Flow Fit, no solo entrenamos cuerpos, cultivamos un estilo de vida.
+                    Nuestro equipo de instructores certificados combina la disciplina del Pilates
+                    con la ciencia del entrenamiento funcional de alto nivel.
+                </p>
+                <div class="founder-quote glass-card">
+                    <p>"La verdadera exclusividad es la atención al detalle en cada movimiento."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contacto" class="section cta-section">
+        <div class="container cta-container glass-card">
+            <div class="cta-content">
+                <h2 class="cta-title">¿Listo para elevar tu estándar?</h2>
+                <p class="cta-text">Cupos limitados para mantener la exclusividad de nuestras sesiones.</p>
+                <form class="cta-form" id="contactForm">
+                    <input type="text" name="name" placeholder="Tu Nombre Completo" class="cta-input" required>
+                    <input type="email" name="email" placeholder="Tu Correo Electrónico" class="cta-input" required>
+                    <textarea name="message" placeholder="¿Alguna pregunta o meta específica?"
+                        class="cta-input cta-textarea" rows="3"></textarea>
+                    <button type="submit" class="btn btn-primary glow-primary">Solicitar Membresía</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <h3 class="footer-logo">AURA FLOW FIT</h3>
+                <p class="footer-desc">Pilates Reformer & Gimnasio Exclusivo en Las Condes.</p>
+            </div>
+            <div class="footer-links-group">
+                <h4>Explorar</h4>
+                <a href="#servicios">Servicios</a>
+                <a href="#contacto">Contacto</a>
+                <a href="../dashboard/login.html" style="opacity:0.6; font-size:0.8rem;">Portal Staff</a>
+            </div>
+            <div class="footer-links-group">
+                <h4>Contacto</h4>
+                <a href="mailto:contacto@auraflow.cl">contacto@auraflow.cl</a>
+                <a href="mailto:ventas@auraflow.cl">ventas@auraflow.cl</a>
+                <a href="tel:+56912345678">+56 9 1234 5678</a>
+            </div>
+            <div class="footer-social">
+                <a href="https://instagram.com/auraflowfit" target="_blank" class="social-icon">Instagram</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Aura Flow Fit. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Button -->
+    <a href="https://wa.me/56912345678?text=Hola!%20Me%20gustaría%20solicitar%20información%20sobre%20las%20clases%20en%20Aura%20Flow%20Fit"
+        class="whatsapp-float" target="_blank" aria-label="Contacto WhatsApp">
+        <svg viewBox="0 0 24 24" class="whatsapp-icon">
+            <path fill="currentColor"
+                d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.766-5.764-5.766zm3.392 8.221c-.142.399-.815.714-1.125.756-.309.041-.692.053-1.147-.144-.455-.198-2.394-1.048-3.135-1.811-.741-.762-.975-1.457-1.126-1.792-.151-.335-.021-.617.062-.731.083-.114.224-.268.336-.403.112-.134.149-.229.224-.382.075-.153.037-.286-.018-.4-.056-.115-.503-1.209-.689-1.658-.182-.439-.368-.38-.504-.387-.132-.007-.284-.008-.436-.008-.153 0-.401.057-.611.286-.21.23-.802.783-.802 1.91 0 1.127.821 2.216.935 2.369.114.153 1.614 2.463 3.912 3.454.546.236.973.376 1.306.481.548.174 1.047.15 1.442.09.44-.066 1.353-.553 1.545-1.086.191-.533.191-.989.135-1.086-.056-.097-.206-.153-.43-.265z" />
+            <path fill="currentColor"
+                d="M12.094 2c-5.523 0-10 4.477-10 10 0 1.763.456 3.419 1.256 4.868l-1.352 4.932 5.094-1.336c1.417.766 3.033 1.201 4.748 1.201 5.523 0 10-4.477 10-10s-4.477-10-10-10zm0 18.067c-1.607 0-3.111-.424-4.414-1.162l-.317-.181-3.039.797.811-2.957-.199-.317a8.031 8.031 0 0 1-1.226-4.247c0-4.448 3.619-8.067 8.067-8.067s8.067 3.619 8.067 8.067-3.619 8.067-8.067 8.067z" />
+        </svg>
+    </a>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
