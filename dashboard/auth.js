@@ -29,7 +29,6 @@ function safeRedirect(targetUrl) {
 
     if (count > 3) {
         console.error('AURA_CRITICAL: Detectado bucle de redirección. Deteniendo navegación automática.');
-        alert('Se detectó un problema técnico en la navegación. Por favor, limpia la caché de tu navegador o contacta a soporte.');
         localStorage.removeItem(REDIRECT_COUNT_KEY);
         return;
     }
@@ -44,10 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
         loginForm.addEventListener('submit', handleLogin);
     }
 
-    // Protection: Redirect to login if not authenticated (except on login page)
-    const isLoginPage = window.location.pathname.includes('login.html');
+    // Protection: Redirect to login if not authenticated (except on login page itself)
+    const path = window.location.pathname;
+    // Handle both Vercel clean URLs (/dashboard/login) and .html paths (login.html)
+    const isLoginPage = path.includes('login.html') || path.endsWith('/login') || path === '/login';
+
     if (!isLoginPage) {
         checkAuth();
+    } else {
+        // Clear redirect counter whenever we successfully land on the login page
+        localStorage.removeItem(REDIRECT_COUNT_KEY);
     }
 });
 
@@ -60,7 +65,6 @@ function handleLogin(e) {
     const user = USERS.find(u => u.email === email && u.pass === pass);
 
     if (user) {
-        // Save session
         const session = {
             authenticated: true,
             user: {
@@ -73,42 +77,47 @@ function handleLogin(e) {
         localStorage.setItem(AUTH_KEY, JSON.stringify(session));
         localStorage.removeItem(REDIRECT_COUNT_KEY); // Reset on successful login
 
-        // Redirect to dashboard (relative to current folder)
-        safeRedirect('index.html');
+        // Use absolute path so it always works (Vercel clean URLs)
+        safeRedirect('/dashboard');
     } else {
-        errorMsg.style.display = 'block';
+        if (errorMsg) errorMsg.style.display = 'block';
     }
 }
 
 function checkAuth() {
-    const sessionStr = localStorage.getItem(AUTH_KEY);
-    if (!sessionStr) {
-        console.warn('Aura Auth: No hay sesión activa. Redirigiendo a portal de acceso.');
-        // If in dashboard or client-app, redirect to root login or local login
-        const target = 'login.html';
-        safeRedirect(target);
-        return;
-    }
+    try {
+        const sessionStr = localStorage.getItem(AUTH_KEY);
+        if (!sessionStr) {
+            console.warn('Aura Auth: No hay sesión activa. Redirigiendo a portal de acceso.');
+            // Absolute path — works with Vercel clean URLs
+            safeRedirect('/dashboard/login');
+            return;
+        }
 
-    const session = JSON.parse(sessionStr);
-    const now = new Date().getTime();
+        const session = JSON.parse(sessionStr);
+        const now = new Date().getTime();
 
-    // Auto-logout after 24h
-    if (now - session.timestamp > 86400000) {
-        logout();
-        return;
-    }
+        // Auto-logout after 24 hours
+        if (now - session.timestamp > 86400000) {
+            logout();
+            return;
+        }
 
-    // Apply role-based filtering if allowed
-    if (window.applyRoleAccess) {
-        window.applyRoleAccess(session.user.role);
+        // Apply role-based access control
+        if (window.applyRoleAccess) {
+            window.applyRoleAccess(session.user.role);
+        }
+    } catch (err) {
+        console.error('Aura Auth: Error leyendo sesión:', err);
+        localStorage.removeItem(AUTH_KEY);
+        safeRedirect('/dashboard/login');
     }
 }
 
 function logout() {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(REDIRECT_COUNT_KEY);
-    safeRedirect('login.html');
+    safeRedirect('/dashboard/login');
 }
 
 function getCurrentUser() {
@@ -118,4 +127,3 @@ function getCurrentUser() {
 
 window.logout = logout;
 window.getCurrentUser = getCurrentUser;
-
