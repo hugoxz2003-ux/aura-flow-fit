@@ -3,11 +3,11 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/dashboard/((?!.*\\.).*)",
+      "source": "/dashboard/(?!.*\\.[a-z0-9]+$)(.*)",
       "destination": "/dashboard/index.html"
     },
     {
-      "source": "/client-app/((?!.*\\.).*)",
+      "source": "/client-app/(?!.*\\.[a-z0-9]+$)(.*)",
       "destination": "/client-app/index.html"
     },
     {
