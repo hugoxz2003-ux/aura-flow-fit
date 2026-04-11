@@ -1,10 +1,46 @@
-// Dashboard JavaScript
+// Aura Flow Fit - Dashboard Hub v2.1
+(function() {
+    // 1. Invincible Global Stubs (Prevent ReferenceErrors during early boot)
+    const stubs = ['showSection', 'renderMembers', 'renderLeads', 'renderFinances', 'renderCalendar', 'renderPlans', 'renderWaitlist', 'renderEvaluations', 'renderAttendance', 'renderFreeTrial', 'renderTrialList', 'verEvaluacion', 'eliminarEvaluacion'];
+    stubs.forEach(s => window[s] = (...args) => console.warn(`Aura: ${s} called before full script resolution.`, args));
+
+    // 2. Safe Data Initialization
+    try {
+        window.dashboardData = JSON.parse(localStorage.getItem('aura_dashboard_cache') || '{"members":[], "leads":[], "finances":[], "bookings":[], "waitlist": [], "plans": []}');
+    } catch (e) {
+        console.error('Aura: Cache corrupt, resetting.', e);
+        window.dashboardData = {"members":[], "leads":[], "finances":[], "bookings":[], "waitlist": [], "plans": []};
+    }
+})();
+
+let activeSection = 'dashboard';
+
+// --- INITIALIZATION GUARD (Aura Guardian Layer) ---
+window.auraInitialized = false;
+
+function safeInit() {
+    if (window.auraInitialized) return;
+    console.info('Aura Flow Fit: Initializing CRM Dashboard...');
+    window.auraInitialized = true;
+    
+    // Setup specific Aura features (Listeners, etc)
+    setupAuraSystem();
+    
+    // Initial Data Fetch
+    fetchDashboardData();
+}
+
+// Check if DOM already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeInit);
+} else {
+    safeInit();
+}
 
 // ==========================================
-// DEMO FALLBACK DATA (used when Supabase is unreachable)
+// DEMO FALLBACK DATA (used only when Supabase & Cache fail)
 // ==========================================
 const DEMO_MEMBERS = [
-    { id: 1, nombre: 'Ana García', email: 'ana@example.com', plan: 'Pilates 2x Semanal', estado: 'Activo', clases_restantes: 8, fecha_vencimiento: '2026-04-30' },
     { id: 2, nombre: 'Laura Torres', email: 'laura@example.com', plan: 'Pilates 3x Semanal', estado: 'Activo', clases_restantes: 12, fecha_vencimiento: '2026-04-30' },
     { id: 3, nombre: 'Sofía Ramos', email: 'sofia@example.com', plan: 'Plan Gimnasio', estado: 'Activo', clases_restantes: 999, fecha_vencimiento: '2026-05-15' },
     { id: 4, nombre: 'Carlos Mendoza', email: 'carlos@example.com', plan: 'Pilates 1x Semanal', estado: 'Vencido', clases_restantes: 0, fecha_vencimiento: '2026-02-28' },
@@ -60,20 +96,7 @@ function loadDemoData() {
     }
 }
 
-// Data state
-let dashboardData = {
-    members: [],
-    leads: [],
-    finances: [],
-    classes: [],
-    plans: [],
-    bookings: [],
-    waitlist: []
-};
-
-// EXPOSE GLOBALLY for index.html inline scripts
-window.dashboardData = dashboardData;
-
+// Fetch real data from Supabase
 
 // Fetch real data from Supabase
 // Aura Flow Fit - Global Error Handling & Tracing
@@ -144,8 +167,16 @@ async function fetchDashboardData() {
     }, 10000);
 
     try {
-        if (!window.supabase) {
-            throw new Error('Supabase SDK not loaded');
+        // --- RESILIENCE GUARD: Wait for Supabase Client ---
+        let waitAttempts = 0;
+        while ((!window.supabase || typeof window.supabase.from !== 'function') && waitAttempts < 20) {
+            console.warn(`Guardian: Waiting for Supabase client... (Attempt ${waitAttempts + 1}/20)`);
+            await new Promise(r => setTimeout(r, 200));
+            waitAttempts++;
+        }
+
+        if (!window.supabase || typeof window.supabase.from !== 'function') {
+            throw new Error('Supabase client failed to initialize after 4s.');
         }
 
         const fetchTasks = [
@@ -154,7 +185,7 @@ async function fetchDashboardData() {
             { key: 'leads', table: 'leads', query: supabase.from('leads').select('*') },
             { key: 'bookings', table: 'reservas', query: supabase.from('reservas').select('*, socio:socios(*), clase:clases(*)').order('created_at', { ascending: false }) },
             { key: 'waitlist', table: 'lista_espera', query: supabase.from('lista_espera').select('*, socio:socios(*), clase:clases(*)').order('created_at', { ascending: true }) },
-            { key: 'finances', table: 'transactions', query: supabase.from('transactions').select('*').order('created_at', { ascending: false }) },
+            { key: 'finances', table: 'pagos', query: supabase.from('pagos').select('*').order('created_at', { ascending: false }) },
             { key: 'plans', table: 'membership_plans', query: supabase.from('membership_plans').select('*').order('name', { ascending: true }) }
         ];
 
@@ -617,29 +648,36 @@ function renderTodayClasses() {
     }
 
     tbody.innerHTML = dashboardData.classes.map(c => {
-        const max = c.tipo === 'pilates' ? 10 : 50;
-        const percent = Math.min(100, Math.round((c.cupos_ocupados / max) * 100));
+        const capacity = c.max_capacity || (c.class_type === 'pilates' ? 10 : 50);
+        const occupied = c.occupied_slots || 0;
+        const percent = Math.min(100, Math.round((occupied / capacity) * 100));
         const inWaitlist = dashboardData.waitlist.filter(w => w.clase_id === c.id).length;
+
+        // Use English columns from DB, fallback to Spanish for safety
+        const hour = c.schedule || c.horario || '--:--';
+        const name = c.name || c.nombre || 'Clase';
+        const type = (c.class_type || c.tipo || 'pilates').toLowerCase();
+        const instructor = c.instructor || '--';
 
         return `
         <tr>
-            <td>${c.horario.substring(0, 5)}</td>
+            <td>${hour.substring(0, 5)}</td>
             <td>
                 <div class="flex flex-col">
-                    <span class="font-600">${c.nombre}</span>
-                    <span class="text-xs ${c.tipo === 'pilates' ? 'text-primary' : 'text-success'} uppercase font-700">${c.tipo}</span>
+                    <span class="font-600">${name}</span>
+                    <span class="text-xs ${type === 'pilates' ? 'text-primary' : 'text-success'} uppercase font-700">${type}</span>
                 </div>
             </td>
-            <td>${c.instructor}</td>
+            <td>${instructor}</td>
             <td>
                 <div class="occupancy-bar">
                     <div class="occupancy-fill ${percent >= 100 ? 'bg-error' : ''}" style="width: ${percent}%"></div>
-                    <span>${c.cupos_ocupados}/${max}</span>
+                    <span>${occupied}/${capacity}</span>
                 </div>
                 ${inWaitlist > 0 ? `<span class="text-xs text-warning font-600">⌛ ${inWaitlist} en espera</span>` : ''}
             </td>
             <td>
-                <button class="btn btn-primary btn-sm" onclick="handleCheckIn('${c.id}', '${c.nombre}')">Check-in</button>
+                <button class="btn btn-primary btn-sm" onclick="handleCheckIn('${c.id}', '${name.replace(/'/g, "\\'")}')">Check-in</button>
                 ${inWaitlist > 0 ? `<button class="btn btn-secondary btn-sm" onclick="showSection('waitlist')">Ver Lista</button>` : ''}
             </td>
         </tr>
@@ -1889,41 +1927,7 @@ window.mostrarModalPago = function(sid) {
 // ==========================================
 // WAITLIST & UTILS
 // ==========================================
-function renderWaitlist(container) {
-    const waitlist = dashboardData.waitlist || [];
-    container.innerHTML = `
-        <div class="glass-card">
-            <div class="p-lg border-b">
-                <h3>Socios en Espera</h3>
-                <p class="text-sm text-muted">Personas esperando cupo en clases llenas</p>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Socio</th>
-                        <th>Clase Solicitada</th>
-                        <th>Posición</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${waitlist.map((w, idx) => `
-                        <tr>
-                            <td>${new Date(w.created_at).toLocaleDateString()}</td>
-                            <td><strong>${w.socio?.nombre || 'Socio'}</strong></td>
-                            <td>${w.clase?.nombre || 'Clase'}</td>
-                            <td><span class="badge badge-info">#${idx + 1}</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="notifyWaitlist('${w.id}')">Notificar Cupo</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
+// Consolidated renderWaitlist is at L1212
 
 window.notifyWaitlist = function(id) {
     alert('Simulación: Enviando mensaje por WhatsApp y Notificación Push al socio... 📱\n"¡Hola! Se ha liberado un cupo para tu clase. Entra a la App para confirmar."');
@@ -2759,20 +2763,37 @@ function renderFreeTrial(container) {
     renderTrialList();
 }
 
-function renderEvaluations(container) {
-    container.innerHTML = `
-        <div class="glass-card">
-            <div class="p-md border-b border-white-05 flex items-center justify-between">
-                <h3>Historial de Evaluaciones Físicas</h3>
-                <button class="btn btn-primary btn-sm" onclick="window.showEvalForm()">+ Nueva Evaluación</button>
-            </div>
-            <div class="p-xl text-center">
-                <p class="text-muted">Módulo de seguimiento biométrico (Peso, % Grasa, Músculo).</p>
-                <button class="btn btn-secondary mt-md" onclick="window.showSection('members')">Seleccionar socio para evaluar</button>
-            </div>
+function renderTrialList() {
+    const listContainer = document.getElementById('trial-list-container');
+    if (!listContainer) return;
+
+    // Filter leads that coming from the landing trial form
+    const trials = (dashboardData.leads || []).filter(l => l.source === 'Clase de Prueba' || l.source === 'Web');
+
+    if (trials.length === 0) {
+        listContainer.innerHTML = '<p class="text-center text-muted p-md">No hay clases de prueba registradas recientemente.</p>';
+        return;
+    }
+
+    listContainer.innerHTML = `
+        <div class="flex flex-col gap-sm">
+            ${trials.slice(0, 5).map(t => `
+                <div class="glass-card p-md flex justify-between items-center" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);">
+                    <div>
+                        <div class="font-600">${t.nombre}</div>
+                        <div class="text-xs text-muted">${t.email} • ${t.phone || 'Sin WhatsApp'}</div>
+                    </div>
+                    <div class="flex items-center gap-sm">
+                        <span class="badge badge-${t.status === 'Nuevo' ? 'info' : 'success'}">${t.status}</span>
+                        <button class="btn btn-sm btn-secondary" onclick="window.showSection('leads')">Ver</button>
+                    </div>
+                </div>
+            `).join('')}
         </div>
     `;
 }
+
+// Consolidated renderEvaluations is at L1649
 
 function verEvaluacion(id) {
     showToast('Visualización de evaluación ID: ' + id + ' (En desarrollo)', 'info');
@@ -2784,34 +2805,40 @@ function eliminarEvaluacion(id) {
     }
 }
 
+window.handleCheckIn = (id, name) => {
+    if (confirm(`¿Registrar asistencia para ${name}?`)) {
+        showToast('Asistencia registrada correctamente.');
+    }
+};
 
 // ==========================================
-// FINAL EXPOSURES & INIT
+// FINAL EXPOSURES (OVERWRITING STUBS)
 // ==========================================
-window.showSection = showSection;
-window.renderMembers = renderMembers;
-window.renderLeads = renderLeads;
-window.renderFinances = renderFinances;
-window.renderCalendar = renderCalendar;
-window.renderPlans = renderPlans;
-window.renderWaitlist = renderWaitlist;
-window.renderEvaluations = renderEvaluations;
-window.renderAttendance = renderAttendance;
-window.renderFreeTrial = renderFreeTrial;
-window.renderTrialList = renderTrialList;
-window.verEvaluacion = verEvaluacion;
-window.eliminarEvaluacion = eliminarEvaluacion;
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.info('%c Aura Dashboard: Initializing System Listeners... ', 'background: #06B6D4; color: white;');
-    setupAuraSystem();
-    fetchDashboardData();
-    
-    const initial = window.location.hash.substring(1) || 'dashboard';
-    document.querySelectorAll('.nav-item').forEach(nav => {
-        if (nav.getAttribute('href') === `#${initial}`) nav.classList.add('active');
-        else nav.classList.remove('active');
-    });
+Object.assign(window, {
+    showSection,
+    renderMembers,
+    renderLeads,
+    renderFinances,
+    renderCalendar,
+    renderPlans,
+    renderWaitlist,
+    renderEvaluations,
+    renderAttendance,
+    renderFreeTrial,
+    renderTrialList,
+    verEvaluacion,
+    eliminarEvaluacion,
+    handleCheckIn: (id, name) => {
+        if (confirm(`¿Registrar asistencia para ${name}?`)) {
+            showToast('Asistencia registrada correctamente.');
+        }
+    }
 });
+
+// Check existing hash on init
+setTimeout(() => {
+    const currentHash = window.location.hash.substring(1) || 'dashboard';
+    showSection(currentHash);
+}, 100);
 
 

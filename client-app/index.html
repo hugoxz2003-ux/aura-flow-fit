@@ -14,13 +14,17 @@
     <link rel="apple-touch-icon" href="/images/icon-192.png">
 
     <!-- Shared Styles -->
-    <link rel="stylesheet" href="/shared-styles.css">
-    <link rel="stylesheet" href="/client-app/client.css">
+    <link rel="stylesheet" href="/shared-styles.css?v=2026.04.09.2">
+    <link rel="stylesheet" href="/client-app/client.css?v=2026.04.09.2">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Auth & Guardian Boot -->
+    <script src="/client-app/auth-guard.js"></script>
+    <script src="/scripts/guardian.js"></script>
 </head>
 
 <body>
@@ -33,7 +37,7 @@
                     <span class="text-xl">✨</span>
                     <span style="font-family:var(--font-titles); font-weight:800; letter-spacing:-0.5px; color:var(--text-white);">AURA FLOW</span>
                 </div>
-                <p class="greeting" style="font-family:var(--font-titles); font-size:1.1rem; color:var(--text-white);">Hola, <span id="user-name" style="color:var(--primary);">María</span> 👋</p>
+                <p class="greeting" style="font-family:var(--font-titles); font-size:1.1rem; color:var(--text-white);">Hola, <span id="user-name" style="color:var(--primary);">...</span> 👋</p>
             </div>
             <div class="header-actions">
                 <button class="icon-btn" id="notif-btn">
@@ -290,16 +294,18 @@
         </nav>
     </div>
 
-    <!-- Scripts -->
-    <!-- Supabase SDK & Config -->
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/supabase-config.js"></script>
 
-    <script src="/client-app/client.js?v=fixed_credits_v3"></script>
+    <script src="/scripts/guardian.js?v=2026.04.11.HOTFIX"></script>
+
+    <!-- Core App Scripts -->
+    <script src="/supabase-config.js?v=2026.04.11.HOTFIX"></script>
+    <script src="/client-app/client.js?v=2026.04.11.HOTFIX"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js');
+                navigator.serviceWorker.register('/client-app/service-worker.js');
             });
         }
     </script>

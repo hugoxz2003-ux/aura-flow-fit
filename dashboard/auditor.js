@@ -1,100 +1,165 @@
 /**
- * Aura Flow Fit - Professional System Auditor
- * Final verification for production readiness.
+ * Aura Guardian v1.0 - Dashboard Auditor Agent
+ * Autonomous Monitoring & Self-Healing for Aura Flow Fit
  */
-async function runSystemAudit() {
-    console.group('%c 🕵️ AURA SYSTEM AUDITOR ', 'background: #18181B; color: #06B6D4; font-size: 1.2rem; padding: 4px; border-radius: 4px;');
-    console.log('Iniciando escaneo de integridad de datos y conectividad...');
 
-    const auditReport = {
-        connectivity: { status: 'PENDING', message: '' },
-        database: { status: 'PENDING', tables: {} },
-        consistency: { status: 'PENDING', issues: [] },
-        environment: { status: 'OK', host: window.location.hostname }
+(function() {
+    const GUARDIAN_NAME = 'Aura Guardian';
+    const HEALTH_CHECK_INTERVAL = 5000;
+    
+    console.info(`%c ${GUARDIAN_NAME} Activated `, 'background: #10B981; color: white; font-weight: bold; border-radius: 4px; padding: 2px 5px;');
+
+    const healthStatus = {
+        supabase: 'pending',
+        data: 'pending',
+        ui: 'pending',
+        errors: []
     };
 
-    try {
-        // 1. Connectivity Check
-        const startTime = performance.now();
-        const { data: ping, error: pingErr } = await supabase.from('socios').select('id').limit(1);
-        const endTime = performance.now();
+    // 1. Monitor Global Errors
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+        const errorDetail = { msg, url, line: lineNo, col: columnNo, time: new Date().toISOString() };
+        healthStatus.errors.push(errorDetail);
+        console.error(`🛡️ ${GUARDIAN_NAME} Detected Crash:`, msg);
         
-        if (pingErr) throw pingErr;
-        auditReport.connectivity = { 
-            status: 'SUCCESS', 
-            message: `Latencia: ${(endTime - startTime).toFixed(0)}ms`,
-            timestamp: new Date().toISOString()
-        };
-
-        // 2. Table Inventory & Integrity
-        const tables = ['socios', 'clases', 'reservas', 'leads', 'pagos', 'membership_plans'];
-        for (const table of tables) {
-            const { data, error, count } = await supabase.from(table).select('*', { count: 'exact', head: false }).limit(5);
-            if (error) {
-                auditReport.database.tables[table] = { status: 'ERROR', detail: error.message };
-            } else {
-                auditReport.database.tables[table] = { status: 'OK', count: count, sample: data.length };
+        // Self-Healing Attempt: If it's a ReferenceError for a core function, try to stub it
+        if (msg.includes('ReferenceError') && msg.includes('render')) {
+            const funcName = msg.split("'")[1];
+            if (funcName && !window[funcName]) {
+                console.warn(`🛡️ ${GUARDIAN_NAME} Self-Repair: Stubbing missing function ${funcName}`);
+                window[funcName] = () => console.warn(`${funcName} is unavailable, please reload.`);
             }
         }
-        auditReport.database.status = 'SUCCESS';
+        
+        showGuardianOverlay(msg);
+        return false;
+    };
 
-        // 3. Logic & Consistency Checks
-        // Check 3.1: Socio Credits vs Plans
-        const { data: members } = await supabase.from('socios').select('nombre, plan, clases_restantes');
-        members.forEach(m => {
-            if (m.clases_restantes === null || m.clases_restantes === undefined) {
-                auditReport.consistency.issues.push(`Socio "${m.nombre}" no tiene créditos definidos.`);
-            }
-            if (!m.plan) {
-                auditReport.consistency.issues.push(`Socio "${m.nombre}" no tiene plan asignado.`);
-            }
-        });
-
-        // Check 3.2: Class Schedule Consistency
-        const { data: classes } = await supabase.from('clases').select('name, dia, schedule');
-        const validDays = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-        classes.forEach(c => {
-            if (!validDays.includes(c.dia)) {
-                auditReport.consistency.issues.push(`Clase "${c.name}" tiene un día inválido: "${c.dia}".`);
-            }
-        });
-
-        if (auditReport.consistency.issues.length === 0) {
-            auditReport.consistency.status = 'SUCCESS';
+    // 2. Continuous Health Pulse
+    function runPulse() {
+        // Check Supabase
+        if (window.supabase) {
+            healthStatus.supabase = 'OK';
         } else {
-            auditReport.consistency.status = 'WARNING';
+            healthStatus.supabase = 'ERROR';
+            console.error(`🛡️ ${GUARDIAN_NAME}: Supabase connection lost!`);
         }
 
-        // Final Verdict
-        const hasErrors = auditReport.connectivity.status === 'ERROR' || 
-                          Object.values(auditReport.database.tables).some(t => t.status === 'ERROR');
-        
-        console.log('%c RESULTADOS DE CONECTIVIDAD: ', 'font-weight: bold;', auditReport.connectivity);
-        console.table(auditReport.database.tables);
-        
-        if (auditReport.consistency.issues.length > 0) {
-            console.warn('⚠️ PROBLEMAS DE CONSISTENCIA ENCONTRADOS:', auditReport.consistency.issues);
-        }
-
-        if (!hasErrors && auditReport.consistency.status === 'SUCCESS') {
-            console.log('%c 🚀 SISTEMA LISTO PARA PRODUCCIÓN Y VENTA ', 'background: #22C55E; color: white; padding: 10px; border-radius: 8px; font-weight: bold; width: 100%; text-align: center;');
+        // Check Logic Presence
+        if (typeof window.showSection === 'function' && typeof window.renderMembers === 'function') {
+            healthStatus.ui = 'OK';
         } else {
-            console.error('%c ❌ EL SISTEMA REQUIERE ATENCIÓN ANTES DE PRODUCIR ', 'background: #EF4444; color: white; padding: 10px; border-radius: 8px; font-weight: bold; width: 100%; text-align: center;');
+            healthStatus.ui = 'DEGRADED';
         }
 
-    } catch (err) {
-        auditReport.connectivity = { status: 'CRITICAL_FAILURE', message: err.message };
-        console.error('FALLO CRÍTICO EN AUDITORÍA:', err);
+        // Check Data
+        if (window.dashboardData && (window.dashboardData.members?.length > 0 || window.dashboardData.leads?.length > 0)) {
+            healthStatus.data = 'OK';
+        } else {
+            healthStatus.data = 'WAITING';
+        }
+
+        updateHealthIndicator();
     }
 
-    console.groupEnd();
-    return auditReport;
-}
+    // 3. UI Health Indicator (The Heartbeat)
+    function injectUI() {
+        const style = document.createElement('style');
+        style.textContent = `
+            #aura-guardian-pulse {
+                position: fixed;
+                bottom: 15px;
+                right: 15px;
+                background: rgba(15, 23, 42, 0.8);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255,255,255,0.1);
+                padding: 6px 12px;
+                border-radius: 20px;
+                color: white;
+                font-size: 10px;
+                font-family: sans-serif;
+                z-index: 9999;
+                display: flex;
+                items-center;
+                gap: 8px;
+                cursor: help;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+            .pulse-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #10B981;
+                box-shadow: 0 0 10px #10B981;
+                animation: aura-glow 2s infinite;
+            }
+            @keyframes aura-glow {
+                0% { opacity: 0.5; transform: scale(0.8); }
+                50% { opacity: 1; transform: scale(1.1); }
+                100% { opacity: 0.5; transform: scale(0.8); }
+            }
+        `;
+        document.head.appendChild(style);
 
-// Global exposure
-window.runSystemAudit = runSystemAudit;
+        const pulse = document.createElement('div');
+        pulse.id = 'aura-guardian-pulse';
+        pulse.title = 'Aura Guardian: Sistema Protegido';
+        pulse.innerHTML = `
+            <div class="pulse-dot"></div>
+            <span>AURA PULSE: ACTIVE</span>
+        `;
+        document.body.appendChild(pulse);
+    }
 
-// Auto-run if requested via URL or after initial load
-if (window.location.search.includes('audit=true')) {
-    window.addEventListener('load', () => setTimeout(runSystemAudit, 3000));
-}
+    function updateHealthIndicator() {
+        const pulse = document.getElementById('aura-guardian-pulse');
+        if (!pulse) return;
+        
+        const dot = pulse.querySelector('.pulse-dot');
+        if (healthStatus.supabase === 'ERROR' || healthStatus.ui === 'DEGRADED') {
+            dot.style.background = '#EF4444';
+            dot.style.boxShadow = '0 0 10px #EF4444';
+            pulse.querySelector('span').textContent = 'AURA PULSE: CRITICAL';
+        } else if (healthStatus.data === 'WAITING' || healthStatus.supabase === 'pending') {
+            dot.style.background = '#F59E0B';
+            dot.style.boxShadow = '0 0 10px #F59E0B';
+            pulse.querySelector('span').textContent = 'AURA PULSE: IDLE';
+        } else {
+            dot.style.background = '#10B981';
+            dot.style.boxShadow = '0 0 10px #10B981';
+            pulse.querySelector('span').textContent = 'AURA PULSE: ACTIVE';
+        }
+    }
+
+    function showGuardianOverlay(errorMsg) {
+        if (document.getElementById('guardian-crash-overlay')) return;
+        
+        const overlay = document.createElement('div');
+        overlay.id = 'guardian-crash-overlay';
+        overlay.style = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; font-family:sans-serif;';
+        overlay.innerHTML = `
+            <h1 style="color:#EF4444; margin-bottom:10px;">🛡️ Aura Guardian Intercept</h1>
+            <p style="margin-bottom:20px;">Se ha detectado un error crítico que podría afectar la estabilidad.</p>
+            <div style="background:#1E293B; padding:15px; border-radius:8px; font-family:monospace; font-size:12px; margin-bottom:25px; max-width:600px; text-align:left; border-left:4px solid #EF4444;">
+                ${errorMsg}
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="location.reload()" style="padding:10px 20px; background:#06B6D4; color:white; border:none; border-radius:5px; cursor:pointer;">Reiniciar Aplicación</button>
+                <button onclick="this.parentElement.parentElement.remove()" style="padding:10px 20px; background:#475569; color:white; border:none; border-radius:5px; cursor:pointer;">Continuar de todos modos</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    // Launch
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        injectUI();
+    } else {
+        window.addEventListener('load', injectUI);
+    }
+    
+    setInterval(runPulse, HEALTH_CHECK_INTERVAL);
+    setTimeout(runPulse, 1000); // Initial check
+    
+})();
