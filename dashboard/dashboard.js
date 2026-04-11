@@ -188,9 +188,9 @@ async function fetchDashboardData() {
             { key: 'members', table: 'socios', query: supabase.from('socios').select('*') },
             { key: 'classes', table: 'clases', query: supabase.from('clases').select('*') },
             { key: 'leads', table: 'leads', query: supabase.from('leads').select('*') },
-            { key: 'bookings', table: 'reservas', query: supabase.from('reservas').select('*, socio:socios(*), clase:clases(*)').order('created_at', { ascending: false }) },
-            { key: 'waitlist', table: 'lista_espera', query: supabase.from('lista_espera').select('*, socio:socios(*), clase:clases(*)').order('created_at', { ascending: true }) },
-            { key: 'finances', table: 'pagos', query: supabase.from('pagos').select('*').order('created_at', { ascending: false }) },
+            { key: 'bookings', table: 'reservas', query: supabase.from('reservas').select('*') },
+            { key: 'waitlist', table: 'lista_espera', query: supabase.from('lista_espera').select('*') },
+            { key: 'finances', table: 'pagos', query: supabase.from('pagos').select('*') },
             { key: 'plans', table: 'membership_plans', query: supabase.from('membership_plans').select('*').order('name', { ascending: true }) }
         ];
 
@@ -647,6 +647,8 @@ function showSection(sectionId) {
         const tcs = document.querySelector('.today-classes-section');
         if (tcs) tcs.style.display = 'block';
 
+        if (dynamicContent) dynamicContent.style.display = 'none';
+
         if (pageTitle) pageTitle.textContent = 'Dashboard';
         renderTodayClasses();
         updateKPIs();
@@ -664,6 +666,9 @@ function showSection(sectionId) {
         dynamicContent.id = 'dynamic-content';
         mainContent.appendChild(dynamicContent);
     }
+    
+    // Ensure visibility
+    dynamicContent.style.display = 'block';
 
     try {
         switch (sectionId) {
