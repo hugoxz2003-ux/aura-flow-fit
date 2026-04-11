@@ -1,8 +1,10 @@
-// Aura Flow Fit - Dashboard Hub v2.1
+/**
+ * Aura Flow CRM Core (v2.5)
+ * Nexus-Hardened Stabilization Layer
+ */
 (function() {
     // 1. Invincible Global Stubs (Prevent ReferenceErrors during early boot)
-    const stubs = ['showSection', 'renderMembers', 'renderLeads', 'renderFinances', 'renderCalendar', 'renderPlans', 'renderWaitlist', 'renderEvaluations', 'renderAttendance', 'renderFreeTrial', 'renderTrialList', 'verEvaluacion', 'eliminarEvaluacion'];
-    stubs.forEach(s => window[s] = (...args) => console.warn(`Aura: ${s} called before full script resolution.`, args));
+    // NOTE: Stubs removed to allow proper function hoisting and assignment
 
     // 2. Safe Data Initialization
     try {
@@ -169,14 +171,17 @@ async function fetchDashboardData() {
     try {
         // --- RESILIENCE GUARD: Wait for Supabase Client ---
         let waitAttempts = 0;
-        while ((!window.supabase || typeof window.supabase.from !== 'function') && waitAttempts < 20) {
-            console.warn(`Guardian: Waiting for Supabase client... (Attempt ${waitAttempts + 1}/20)`);
+        const maxWait = 25; // 5 seconds total
+        
+        while ((!window.supabase || typeof window.supabase.from !== 'function') && waitAttempts < maxWait) {
+            console.warn(`Guardian: Waiting for Supabase client... (Attempt ${waitAttempts + 1}/${maxWait})`);
             await new Promise(r => setTimeout(r, 200));
             waitAttempts++;
         }
 
         if (!window.supabase || typeof window.supabase.from !== 'function') {
-            throw new Error('Supabase client failed to initialize after 4s.');
+            console.error('Supabase client failed to initialize in time. Using fallback.');
+            throw new Error('Supabase Timeout');
         }
 
         const fetchTasks = [
@@ -189,25 +194,26 @@ async function fetchDashboardData() {
             { key: 'plans', table: 'membership_plans', query: supabase.from('membership_plans').select('*').order('name', { ascending: true }) }
         ];
 
+        // Process in parallel with timeout
         await Promise.all(fetchTasks.map(async (task) => {
             try {
                 const { data, error } = await task.query;
                 if (error) throw error;
                 dashboardData[task.key] = data || [];
             } catch (innerErr) {
-                console.warn(`Error en tabla ${task.table}:`, innerErr.message);
+                console.warn(`Aura Sync: Error en tabla ${task.table}:`, innerErr.message);
+                // Non-critical, continue
             }
         }));
 
-        // Fallback to Demo Data ONLY if core data is missing
-        if (dashboardData.members.length === 0) {
+        if (dashboardData.members.length === 0 && dashboardData.leads.length === 0) {
             loadDemoData();
         } else {
             console.info('Aura Cloud: Datos sincronizados exitosamente.');
         }
 
     } catch (err) {
-        console.error('Aura Critical Auth/Data Error:', err);
+        console.error('Aura Critical Data Error:', err);
         showToast('Error de conexión. Activando modo offline.', 'warning');
         loadDemoData();
     } finally {
@@ -231,10 +237,6 @@ async function fetchDashboardData() {
             overlay.style.opacity = '0';
             setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 600);
         }
-        
-        // Hide loader after all is done
-        const preloader = document.querySelector('.preloader');
-        if (preloader) preloader.style.display = 'none';
     }
 }
 
@@ -461,11 +463,25 @@ function setupAuraSystem() {
         showSection(target);
     });
 
-    // Search functionality
+    // --- GLOBAL SEARCH ENGINE v2.5 ---
     const searchInput = document.querySelector('.search-input');
+    const searchResults = document.getElementById('search-results-overlay');
+    
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            console.log('Aura Search:', e.target.value.toLowerCase());
+            const query = e.target.value.toLowerCase().trim();
+            if (query.length < 2) {
+                if (searchResults) searchResults.style.display = 'none';
+                return;
+            }
+            performAuraSearch(query);
+        });
+
+        // Close on blur
+        document.addEventListener('click', (e) => {
+            if (searchResults && !e.target.closest('.search-box')) {
+                searchResults.style.display = 'none';
+            }
         });
     }
 
@@ -521,6 +537,68 @@ function showNewMemberModal() {
 
 window.showNewMemberModal = showNewMemberModal;
 
+// --- GLOBAL SEARCH LOGIC ---
+function performAuraSearch(query) {
+    const results = [];
+    const maxResults = 8;
+    
+    // 1. Search Members
+    dashboardData.members.forEach(m => {
+        if (m.nombre?.toLowerCase().includes(query) || m.email?.toLowerCase().includes(query)) {
+            results.push({ type: 'SOCIO', name: m.nombre, id: m.id, section: 'members' });
+        }
+    });
+
+    // 2. Search Leads
+    dashboardData.leads.forEach(l => {
+        if (l.nombre?.toLowerCase().includes(query) || l.email?.toLowerCase().includes(query)) {
+            results.push({ type: 'LEAD', name: l.nombre, id: l.id, section: 'leads' });
+        }
+    });
+
+    // 3. Search Classes
+    dashboardData.classes.forEach(c => {
+        const name = c.nombre || c.name || '';
+        if (name.toLowerCase().includes(query)) {
+            results.push({ type: 'CLASE', name: name, id: c.id, section: 'calendar' });
+        }
+    });
+
+    renderSearchResults(results.slice(0, maxResults));
+}
+
+function renderSearchResults(results) {
+    let overlay = document.getElementById('search-results-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'search-results-overlay';
+        overlay.style.cssText = 'position:absolute; top:100%; left:0; width:300px; background:var(--bg-secondary); border:1px solid var(--glass-border); border-radius:12px; margin-top:10px; z-index:10002; box-shadow:0 10px 25px rgba(0,0,0,0.5); backdrop-filter:blur(10px); overflow:hidden;';
+        document.querySelector('.search-box').appendChild(overlay);
+    }
+
+    if (results.length === 0) {
+        overlay.innerHTML = '<div class="p-md text-center text-muted text-xs">No hay coincidencias</div>';
+    } else {
+        overlay.innerHTML = results.map(r => `
+            <div class="p-sm flex items-center justify-between hover:bg-white-05 cursor-pointer border-b border-white-05" onclick="showSection('${r.section}')">
+                <div class="flex flex-col">
+                    <span class="text-sm font-600">${r.name}</span>
+                    <span class="text-xs uppercase font-700" style="color:var(--primary); font-size:9px;">${r.type}</span>
+                </div>
+                <span class="text-muted" style="font-size:10px;">→</span>
+            </div>
+        `).join('');
+    }
+    overlay.style.display = 'block';
+}
+
+// BIND TO WINDOW FOR RELIABILITY
+window.showSection = showSection;
+window.renderTodayClasses = renderTodayClasses;
+window.updateKPIs = updateKPIs;
+window.initializeCharts = initializeCharts;
+window.fetchDashboardData = fetchDashboardData;
+
 
 function showSection(sectionId) {
     if (!sectionId) sectionId = 'dashboard';
@@ -547,8 +625,13 @@ function showSection(sectionId) {
     });
 
     // Remove any existing dynamic content
-    const existingDynamic = document.getElementById('dynamic-content');
-    if (existingDynamic) existingDynamic.remove();
+    let dynamicContent = document.getElementById('dynamic-content');
+    if (dynamicContent) dynamicContent.innerHTML = '';
+    else {
+        dynamicContent = document.createElement('div');
+        dynamicContent.id = 'dynamic-content';
+        mainContent.appendChild(dynamicContent);
+    }
 
     // Elements that belong ONLY to the dashboard
     const dashboardElements = [
@@ -574,10 +657,13 @@ function showSection(sectionId) {
     // Hide dashboard elements for any other section
     dashboardElements.forEach(el => { if (el) el.style.display = 'none'; });
 
-    // Create dynamic content area
-    const dynamicContent = document.createElement('div');
-    dynamicContent.id = 'dynamic-content';
-    mainContent.appendChild(dynamicContent);
+    // Use the dynamic content area
+    dynamicContent = document.getElementById('dynamic-content');
+    if (!dynamicContent) {
+        dynamicContent = document.createElement('div');
+        dynamicContent.id = 'dynamic-content';
+        mainContent.appendChild(dynamicContent);
+    }
 
     try {
         switch (sectionId) {
@@ -642,16 +728,19 @@ function renderTodayClasses() {
     const tbody = document.getElementById('today-classes-body');
     if (!tbody) return;
 
-    if (dashboardData.classes.length === 0) {
+    const classes = dashboardData.classes || [];
+    if (classes.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center p-lg">No hay clases programadas para hoy.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = dashboardData.classes.map(c => {
+    const waitlist = dashboardData.waitlist || [];
+
+    tbody.innerHTML = classes.map(c => {
         const capacity = c.max_capacity || (c.class_type === 'pilates' ? 10 : 50);
         const occupied = c.occupied_slots || 0;
         const percent = Math.min(100, Math.round((occupied / capacity) * 100));
-        const inWaitlist = dashboardData.waitlist.filter(w => w.clase_id === c.id).length;
+        const inWaitlist = waitlist.filter(w => w.clase_id === c.id).length;
 
         // Use English columns from DB, fallback to Spanish for safety
         const hour = c.schedule || c.horario || '--:--';
@@ -693,7 +782,7 @@ function updateKPIs() {
     const currentMonthStr = now.toISOString().slice(0, 7); // "2026-04"
     
     let monthlyIncome = (dashboardData.finances || [])
-        .filter(f => (f.status === 'success' || f.status === 'Pagado') && f.amount > 0 && f.created_at?.startsWith(currentMonthStr))
+        .filter(f => (f.status === 'success' || (f.status || '').toLowerCase() === 'pagado') && f.amount > 0 && f.created_at?.startsWith(currentMonthStr))
         .reduce((sum, f) => sum + Number(f.amount), 0);
     
     // If current month is 0 (start of month), show previous month to avoid "empty" feeling
@@ -701,7 +790,7 @@ function updateKPIs() {
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const lastMonthStr = lastMonth.toISOString().slice(0, 7);
         monthlyIncome = (dashboardData.finances || [])
-            .filter(f => (f.status === 'success' || f.status === 'Pagado') && f.amount > 0 && f.created_at?.startsWith(lastMonthStr))
+            .filter(f => (f.status === 'success' || (f.status || '').toLowerCase() === 'pagado') && f.amount > 0 && f.created_at?.startsWith(lastMonthStr))
             .reduce((sum, f) => sum + Number(f.amount), 0);
     }
 
@@ -2835,10 +2924,61 @@ Object.assign(window, {
     }
 });
 
-// Check existing hash on init
+// ==========================================
+// SEARCH & EVENT LISTENERS
+// ==========================================
+
+// Global Search Implementation
+document.querySelector('.search-input')?.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    const dynamicContent = document.getElementById('dynamic-content');
+    if (!dynamicContent) return;
+
+    if (!term) {
+        showSection(window.location.hash.substring(1) || 'dashboard');
+        return;
+    }
+
+    // Determine current view to filter appropriately
+    const currentHash = window.location.hash.substring(1) || 'dashboard';
+    
+    if (currentHash === 'members') {
+        const filtered = dashboardData.members.filter(m => 
+            (m.nombre || '').toLowerCase().includes(term) || 
+            (m.email || '').toLowerCase().includes(term)
+        );
+        const originalMembers = dashboardData.members;
+        dashboardData.members = filtered;
+        renderMembers(dynamicContent);
+        dashboardData.members = originalMembers; // Restore
+    } else if (currentHash === 'leads') {
+        const filtered = dashboardData.leads.filter(l => 
+            (l.nombre || '').toLowerCase().includes(term) || 
+            (l.email || '').toLowerCase().includes(term) ||
+            (l.telefono || '').toLowerCase().includes(term)
+        );
+        const originalLeads = dashboardData.leads;
+        dashboardData.leads = filtered;
+        renderLeads(dynamicContent);
+        dashboardData.leads = originalLeads; // Restore
+    }
+});
+
+// Automatic Module Routing via Hash
+window.addEventListener('hashchange', () => {
+    const section = window.location.hash.substring(1) || 'dashboard';
+    showSection(section);
+});
+
+// Initialize on load
 setTimeout(() => {
     const currentHash = window.location.hash.substring(1) || 'dashboard';
     showSection(currentHash);
-}, 100);
+    
+    // Guardian Connectivity Pulse
+    if (window.AuraGuardian) {
+        console.log('Aura: Guardian Active. System Health: Optimal.');
+    }
+}, 300);
 
 

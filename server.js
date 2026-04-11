@@ -30,8 +30,11 @@ const server = http.createServer((req, res) => {
     // Log request
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
 
+    // Strip query parameters for file system operations
+    const cleanUrl = req.url.split('?')[0];
+
     // Map root to aura.html if index.html is missing in root
-    let url = req.url === '/' ? '/aura.html' : req.url;
+    let url = cleanUrl === '/' ? '/aura.html' : cleanUrl;
     
     // Construct initial file path
     let filePath = path.join(root, url);
