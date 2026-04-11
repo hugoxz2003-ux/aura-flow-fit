@@ -10,6 +10,15 @@
           "value": "no-store, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/dashboard/aura-auth-v23.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -22,11 +31,11 @@
       "destination": "/client-app/login.html"
     },
     {
-      "source": "/dashboard/(?!login|login.html)(.*)",
+      "source": "/dashboard/(?!login|login.html|aura-auth-v23)(.*)",
       "destination": "/dashboard/index.html"
     },
     {
-      "source": "/client-app/(?!login|login.html)(.*)",
+      "source": "/client-app/(?!login|login.html|aura-guard-v23)(.*)",
       "destination": "/client-app/index.html"
     }
   ]
