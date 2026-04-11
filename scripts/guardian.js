@@ -1,74 +1,132 @@
 /**
- * Aura Flow Fit - Guardian v1.2 (Fortress Edition)
- * Autonomous monitor with resilient UI injection and self-healing error stubs.
+ * Aura Guardian v2.4 - The Master Administrator Agent
+ * --------------------------------------------------
+ * Role: Autonomous project administrator for Aura Flow Fit.
+ * Pillars: Monitors GitHub (Sync), Vercel (Deployment), Supabase (Data).
  */
-(function() {
-    console.info('%c Aura Guardian Fortress: ACTIVE ', 'background: #06B6D4; color: white; border-radius: 4px; padding: 2px 6px;');
 
-    const state = { cloud: 'connecting', latency: 0, lastCheck: Date.now(), retries: 0 };
+const NID_BUILD = '2026.04.11.NEXUS';
+const HEALTH_CHECK_INTERVAL = 30000; // 30s probes
 
-    function injectUI() {
-        if (document.getElementById('aura-pulse-indicator')) return;
-        if (!document.body) {
-            requestAnimationFrame(injectUI);
-            return;
-        }
+class AuraNexusAgent {
+    constructor() {
+        this.status = { github: 'pending', vercel: 'pending', supabase: 'pending' };
+        this.init();
+    }
 
-        const styles = document.createElement('style');
-        styles.textContent = `
-            #aura-pulse-indicator {
-                position: fixed; bottom: 20px; right: 20px; width: 12px; height: 12px;
-                border-radius: 50%; z-index: 2147483647; cursor: pointer;
-                border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 0 10px rgba(0,0,0,0.5);
-                transition: transform 0.3s;
+    async init() {
+        console.info(`%c 🛡️ AURA NEXUS AGENT v2.4 ACTIVE [Build ${NID_BUILD}] `, 'background: #06B6D4; color: #fff; font-weight: bold;');
+        
+        // Auto-fix for stale cache
+        this.checkVersionCompatibility();
+        
+        // Start monitoring pulse
+        this.injectUI();
+        this.runPillarAudit();
+        setInterval(() => this.runPillarAudit(), HEALTH_CHECK_INTERVAL);
+
+        // Administrator "Double-Tap" shortcut (Shift + Shift)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Shift') {
+                if (this.lastShift && Date.now() - this.lastShift < 300) {
+                    this.showAdminReport();
+                }
+                this.lastShift = Date.now();
             }
-            #aura-pulse-indicator:hover { transform: scale(1.3); }
-            #aura-pulse-indicator.online { background: #22C55E; box-shadow: 0 0 15px #22C55EAA; }
-            #aura-pulse-indicator.offline { background: #F59E0B; }
-            #aura-pulse-indicator.error { background: #EF4444; }
-            #aura-pulse-indicator.connecting { background: #06B6D4; animation: aura-pulse-anim 1s infinite alternate; }
-            @keyframes aura-pulse-anim { from { opacity: 1; } to { opacity: 0.4; } }
-        `;
-        document.head.appendChild(styles);
-
-        const pulse = document.createElement('div');
-        pulse.id = 'aura-pulse-indicator';
-        pulse.className = 'connecting';
-        pulse.title = 'Aura Flow Fit: Sistema de Resiliencia Activo';
-        document.body.appendChild(pulse);
-        window.auraPulse = pulse;
+        });
     }
 
-    async function checkHealth() {
-        const start = Date.now();
-        try {
-            if (!window.supabase) { setCloudState('connecting'); return; }
-            const { error } = await window.supabase.from('socios').select('count', { head: true });
-            if (error) throw error;
-            state.latency = Date.now() - start;
-            setCloudState('online');
-        } catch (err) {
-            setCloudState('offline');
+    checkVersionCompatibility() {
+        const storedBuild = localStorage.getItem('aura_nexus_build');
+        if (storedBuild && storedBuild !== NID_BUILD) {
+            console.warn('Aura Nexus: Detected version mismatch. Purging stale caches...');
+            localStorage.clear();
+            sessionStorage.clear();
+            localStorage.setItem('aura_nexus_build', NID_BUILD);
+            window.location.reload();
+        } else {
+            localStorage.setItem('aura_nexus_build', NID_BUILD);
         }
     }
 
-    function setCloudState(newState) {
-        state.cloud = newState;
-        if (window.auraPulse) window.auraPulse.className = newState;
+    async runPillarAudit() {
+        // Pillar 1: Supabase (Data Integrity)
+        try {
+            if (window.supabase) {
+                const { data, error } = await window.supabase.from('socios').select('count', { count: 'exact', head: true });
+                this.status.supabase = error ? 'error' : 'online';
+            } else {
+                this.status.supabase = 'missing_sdk';
+            }
+        } catch (e) {
+            this.status.supabase = 'error';
+        }
+
+        // Pillar 2: Vercel (Deployment Sync)
+        this.status.vercel = (window.location.hostname.includes('vercel.app')) ? 'live' : 'local';
+
+        // Pillar 3: GitHub (Code Integrity)
+        // Verified by version tag presence in DOM
+        const scriptTags = Array.from(document.querySelectorAll('script[src*="v23"]'));
+        this.status.github = scriptTags.length > 0 ? 'synced' : 'stale';
+
+        this.updatePulseUI();
     }
 
-    // Self-Healing: Prevent ReferenceErrors
-    window.showSection = window.showSection || ((t) => console.warn('Aura Guardian: showSection stubbed for', t));
-    window.renderTrialList = window.renderTrialList || (() => {});
-
-    // Boot
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectUI);
-    } else {
-        injectUI();
+    injectUI() {
+        if (document.getElementById('aura-pulse')) return;
+        const pulse = document.createElement('div');
+        pulse.id = 'aura-pulse';
+        Object.assign(pulse.style, {
+            position: 'fixed',
+            bottom: '15px',
+            right: '15px',
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            backgroundColor: '#06B6D4',
+            boxShadow: '0 0 10px rgba(6, 182, 212, 0.8)',
+            zIndex: '99999',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease'
+        });
+        pulse.title = 'Aura Nexus Agent Active';
+        pulse.onclick = () => this.showAdminReport();
+        document.body.appendChild(pulse);
     }
-    document.addEventListener('load', injectUI); // Double tap
 
-    setInterval(checkHealth, 30000);
-    setTimeout(checkHealth, 1000);
-})();
+    updatePulseUI() {
+        const pulse = document.getElementById('aura-pulse');
+        if (!pulse) return;
+
+        const allOk = Object.values(this.status).every(s => ['online', 'live', 'synced'].includes(s));
+        
+        if (allOk) {
+            pulse.style.backgroundColor = '#06B6D4'; // Aura Cyan
+            pulse.style.boxShadow = '0 0 10px rgba(6, 182, 212, 0.8)';
+        } else {
+            pulse.style.backgroundColor = '#F59E0B'; // Warning Orange
+            pulse.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.8)';
+        }
+    }
+
+    showAdminReport() {
+        const report = `
+--- AURA NEXUS MASTER REPORT ---
+Build: ${NID_BUILD}
+Status:
+- SUPABASE: ${this.status.supabase.toUpperCase()}
+- VERCEL: ${this.status.vercel.toUpperCase()}
+- GITHUB: ${this.status.github.toUpperCase()}
+--------------------------------
+        `;
+        alert(report);
+    }
+}
+
+// Auto-boot
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { window.AuraNexus = new AuraNexusAgent(); });
+} else {
+    window.AuraNexus = new AuraNexusAgent();
+}
