@@ -299,7 +299,7 @@
                 <p class="cta-text">Cupos limitados para Socio Fundador en El Trovador. ¡Asegura el tuyo ahora!</p>
                 <form class="cta-form" id="contactForm">
                     <input type="text" name="name" placeholder="Tu Nombre" class="cta-input" required>
-                    <input type="tel" name="phone" placeholder="WhatsApp / Teléfono" class="cta-input" required>
+                    <input type="tel" name="phone" placeholder="WhatsApp / Teléfono (+56...)" value="+56 " class="cta-input" required pattern="^\+56\s?\d{9}$" title="Formato: +56 912345678">
                     <input type="email" name="email" placeholder="Correo Electrónico" class="cta-input" required>
                     <select name="service" class="cta-input" required style="background: var(--bg-primary);">
                         <option value="">¿Qué te interesa?</option>
