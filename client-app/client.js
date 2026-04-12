@@ -131,15 +131,24 @@ async function initClient() {
             throw new Error('Supabase client failed to initialize after 5s.');
         }
 
-        // Individual fetches to prevent one failure from blocking all
+        // Individual fetches to prevent one failure from blocking all [Aura Resilience Layer]
         const fetchUserData = async () => {
             try {
                 const { data, error } = await supabase.from('socios').select('*').eq('email', userEmail);
                 if (error) throw error;
-                if (data && data.length > 0) clientData.user = data[0];
+                if (data && data.length > 0) {
+                    const m = data[0];
+                    clientData.user = {
+                        ...m,
+                        id: m.id,
+                        nombre: m.nombre || m.name || 'Socio',
+                        clases_restantes: Number(m.clases_restantes ?? m.remaining_classes ?? 0),
+                        plan: m.plan,
+                        estado: m.estado || m.status
+                    };
+                }
             } catch (e) { 
                 console.warn('Supabase: No se pudo cargar el perfil del socio.', e.message); 
-                // Fallback to name from session if available
                 if (!clientData.user) {
                      clientData.user = { 
                         nombre: session.name || userEmail.split('@')[0], 
@@ -155,28 +164,17 @@ async function initClient() {
              try {
                 const { data, error } = await supabase.from('clases').select('*');
                 if (error) throw error;
-                clientData.classes = data || [];
+                clientData.classes = (data || []).map(c => ({
+                    ...c,
+                    name: c.name || c.nombre || 'Clase',
+                    class_type: c.class_type || c.tipo || 'pilates',
+                    instructor: c.instructor || 'Sin asignar',
+                    schedule: c.schedule || c.horario || '00:00:00',
+                    day: c.day || c.dia || 'Lunes',
+                    max_capacity: Number(c.max_capacity || c.cupos_max || 10),
+                    occupied_slots: Number(c.occupied_slots || c.cupos_ocupados || 0)
+                }));
             } catch (e) { console.warn('Supabase: No se pudieron cargar las clases.', e.message); }
-        };
-
-        const fetchBookings = async () => {
-            try {
-                const userId = clientData.user?.id;
-                if (!userId) return;
-                const { data, error } = await supabase.from('reservas').select('*, clase:clases(*)').eq('socio_id', userId).order('created_at', { ascending: true });
-                if (error) throw error;
-                clientData.bookings = data || [];
-            } catch (e) { console.warn('Supabase: No se pudieron cargar las reservas.', e.message); }
-        };
-
-        const fetchWaitlist = async () => {
-            try {
-                const userId = clientData.user?.id;
-                if (!userId) return;
-                const { data, error } = await supabase.from('lista_espera').select('*, clase:clases(*)').eq('socio_id', userId);
-                if (error) throw error;
-                clientData.waitlist = data || [];
-            } catch (e) { console.warn('Supabase: No se pudo cargar la lista de espera.', e.message); }
         };
 
         await fetchUserData();

@@ -33,8 +33,8 @@ const server = http.createServer((req, res) => {
     // Strip query parameters for file system operations
     const cleanUrl = req.url.split('?')[0];
 
-    // Map root to aura.html if index.html is missing in root
-    let url = cleanUrl === '/' ? '/aura.html' : cleanUrl;
+    // Map root to index.html (Unified Portal)
+    let url = cleanUrl === '/' ? '/index.html' : cleanUrl;
     
     // Construct initial file path
     let filePath = path.join(root, url);

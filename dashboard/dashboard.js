@@ -2,16 +2,32 @@
  * Aura Flow CRM Core (v2.5)
  * Nexus-Hardened Stabilization Layer
  */
-(function() {
-    // 1. Invincible Global Stubs (Prevent ReferenceErrors during early boot)
-    // NOTE: Stubs removed to allow proper function hoisting and assignment
 
-    // 2. Safe Data Initialization
+// 1. AURA CORE STABILIZER (Prevent ReferenceErrors)
+window.Aura = {
+    initialized: false,
+    data: {"members":[], "leads":[], "finances":[], "bookings":[], "waitlist": [], "plans": []},
+    modules: {},
+    navigate: function(sectionId) {
+        if (!sectionId) sectionId = 'dashboard';
+        window.location.hash = sectionId;
+        if (window.showSection) window.showSection(sectionId);
+    }
+};
+
+// 2. Global Stubs (Safe fallback for early calls)
+window.showSection = window.showSection || function(s) { console.warn('Aura: showSection called before load:', s); };
+window.renderTrialList = window.renderTrialList || function() { console.warn('Aura: renderTrialList not ready'); };
+
+(function() {
+    // Sync localStorage cache to window.dashboardData and Aura.data
     try {
-        window.dashboardData = JSON.parse(localStorage.getItem('aura_dashboard_cache') || '{"members":[], "leads":[], "finances":[], "bookings":[], "waitlist": [], "plans": []}');
+        const cache = localStorage.getItem('aura_dashboard_cache');
+        window.dashboardData = cache ? JSON.parse(cache) : window.Aura.data;
+        window.Aura.data = window.dashboardData;
     } catch (e) {
-        console.error('Aura: Cache corrupt, resetting.', e);
-        window.dashboardData = {"members":[], "leads":[], "finances":[], "bookings":[], "waitlist": [], "plans": []};
+        console.error('Aura: Cache error:', e);
+        window.dashboardData = window.Aura.data;
     }
 })();
 
@@ -190,26 +206,63 @@ async function fetchDashboardData() {
             { key: 'leads', table: 'leads', query: supabase.from('leads').select('*') },
             { key: 'bookings', table: 'reservas', query: supabase.from('reservas').select('*') },
             { key: 'waitlist', table: 'lista_espera', query: supabase.from('lista_espera').select('*') },
-            { key: 'finances', table: 'pagos', query: supabase.from('pagos').select('*') },
+            // Smart Finance Fetching: Try 'pagos' first, fallback to 'transactions' (Aura Resilience)
+            { 
+                key: 'finances', 
+                table: 'pagos/transactions', 
+                query: (async () => {
+                    let res = await supabase.from('pagos').select('*');
+                    if (res.error) res = await supabase.from('transactions').select('*');
+                    return res;
+                })() 
+            },
             { key: 'plans', table: 'membership_plans', query: supabase.from('membership_plans').select('*').order('name', { ascending: true }) }
         ];
 
-        // Process in parallel with timeout
+        // Process in parallel with timeout [Aura Resilience Layer]
         await Promise.all(fetchTasks.map(async (task) => {
             try {
                 const { data, error } = await task.query;
                 if (error) throw error;
-                dashboardData[task.key] = data || [];
+                
+                let processedData = data || [];
+                
+                // --- AURA STANDARDIZATION --- Standardizing on English Keys
+                if (task.key === 'classes') {
+                    processedData = processedData.map(c => ({
+                        ...c,
+                        id: c.id,
+                        name: c.name || c.nombre || 'Clase',
+                        class_type: c.class_type || c.tipo || 'pilates',
+                        instructor: c.instructor || 'Sin asignar',
+                        schedule: c.schedule || c.horario || '00:00:00',
+                        day: c.day || c.dia || 'Lunes',
+                        max_capacity: Number(c.max_capacity || c.cupos_max || 10),
+                        occupied_slots: Number(c.occupied_slots || c.cupos_ocupados || 0)
+                    }));
+                } else if (task.key === 'members') {
+                    processedData = processedData.map(m => ({
+                        ...m,
+                        id: m.id,
+                        nombre: m.nombre || m.name || 'Socio',
+                        email: m.email,
+                        plan: m.plan,
+                        estado: m.estado || m.status || 'Inactivo',
+                        clases_restantes: Number(m.clases_restantes ?? m.remaining_classes ?? 0),
+                        fecha_vencimiento: m.fecha_vencimiento || m.expiry_date
+                    }));
+                }
+                
+                dashboardData[task.key] = processedData;
             } catch (innerErr) {
                 console.warn(`Aura Sync: Error en tabla ${task.table}:`, innerErr.message);
-                // Non-critical, continue
             }
         }));
 
-        if (dashboardData.members.length === 0 && dashboardData.leads.length === 0) {
+        if (dashboardData.members.length === 0 && (dashboardData.leads?.length || 0) === 0) {
             loadDemoData();
         } else {
-            console.info('Aura Cloud: Datos sincronizados exitosamente.');
+            console.info('Aura Cloud: Datos sincronizados y normalizados exitosamente.');
         }
 
     } catch (err) {
@@ -602,38 +655,41 @@ window.fetchDashboardData = fetchDashboardData;
 
 function showSection(sectionId) {
     if (!sectionId) sectionId = 'dashboard';
-    console.log('--- Aura Routing: Switching to', sectionId);
+    console.info('--- Aura Routing: Switching to', sectionId);
     
+    // Safety check for UI elements
     const mainContent = document.querySelector('.main-content');
-    const pageTitle = document.querySelector('.page-title');
-    
-    if (!mainContent) {
-        console.error('Aura Flow: CRITICAL ERROR - .main-content not found');
+    const dynamicContent = document.getElementById('dynamic-content');
+    if (!mainContent || !dynamicContent) return;
+
+    // Reset animations and hide all sections
+    const sections = document.querySelectorAll('.dashboard-section');
+    sections.forEach(s => {
+        s.style.display = 'none';
+        s.classList.remove('animate-entrance');
+    });
+
+    const container = document.getElementById(sectionId);
+    if (!container) {
+        console.warn(`Aura Flow: Page ${sectionId} not found.`);
         return;
     }
 
-    if (window._currentSection === sectionId) return;
-    window._currentSection = sectionId;
+    // Show with animation
+    container.style.display = 'block';
+    container.classList.add('animate-entrance');
 
-    // Update Side-menu active state globally
+    // Update Side-menu active state
     document.querySelectorAll('.nav-item').forEach(nav => {
-        if (nav.getAttribute('href') === `#${sectionId}`) {
+        const href = nav.getAttribute('href');
+        if (href === `#${sectionId}` || (sectionId === 'dashboard' && href === '#')) {
             nav.classList.add('active');
         } else {
             nav.classList.remove('active');
         }
     });
 
-    // Remove any existing dynamic content
-    let dynamicContent = document.getElementById('dynamic-content');
-    if (dynamicContent) dynamicContent.innerHTML = '';
-    else {
-        dynamicContent = document.createElement('div');
-        dynamicContent.id = 'dynamic-content';
-        mainContent.appendChild(dynamicContent);
-    }
-
-    // Elements that belong ONLY to the dashboard
+    // Handle Dashboard vs Sub-modules
     const dashboardElements = [
         document.querySelector('.kpi-grid'),
         document.querySelector('.charts-row'),
@@ -641,91 +697,54 @@ function showSection(sectionId) {
         document.querySelector('.today-classes-section')
     ];
     
+    let dynamicContent = document.getElementById('dynamic-content');
+    if (!dynamicContent) {
+        dynamicContent = document.createElement('div');
+        dynamicContent.id = 'dynamic-content';
+        mainContent.appendChild(dynamicContent);
+    }
+
     if (sectionId === 'dashboard') {
         dashboardElements.forEach(el => { if (el) el.style.display = 'grid'; });
-        // Specific fix for today-classes which might be a different display type
         const tcs = document.querySelector('.today-classes-section');
         if (tcs) tcs.style.display = 'block';
-
-        if (dynamicContent) dynamicContent.style.display = 'none';
-
+        dynamicContent.style.display = 'none';
         if (pageTitle) pageTitle.textContent = 'Dashboard';
+        
         renderTodayClasses();
         updateKPIs();
         setTimeout(initializeCharts, 100);
         return;
     }
 
-    // Hide dashboard elements for any other section
+    // Clear and show dynamic area
     dashboardElements.forEach(el => { if (el) el.style.display = 'none'; });
-
-    // Use the dynamic content area
-    dynamicContent = document.getElementById('dynamic-content');
-    if (!dynamicContent) {
-        dynamicContent = document.createElement('div');
-        dynamicContent.id = 'dynamic-content';
-        mainContent.appendChild(dynamicContent);
-    }
-    
-    // Ensure visibility
+    dynamicContent.innerHTML = '<div class="flex justify-center p-xl"><div class="spinner"></div></div>';
     dynamicContent.style.display = 'block';
 
+    // Route to specialized renderers
     try {
-        switch (sectionId) {
-            case 'members':
-                pageTitle.textContent = 'Gestión de Socios';
-                renderMembers(dynamicContent);
-                break;
-            case 'leads':
-                pageTitle.textContent = 'Pipeline de Leads';
-                renderLeads(dynamicContent);
-                break;
-            case 'finances':
-                pageTitle.textContent = 'Finanzas y Pagos';
-                renderFinances(dynamicContent);
-                break;
-            case 'calendar':
-                pageTitle.textContent = 'Calendario de Clases';
-                renderCalendar(dynamicContent);
-                break;
-            case 'plans':
-                pageTitle.textContent = 'Gestión de Planes y Precios';
-                renderPlans(dynamicContent);
-                break;
-            case 'waitlist':
-                pageTitle.textContent = 'Lista de Espera';
-                renderWaitlist(dynamicContent);
-                break;
-            case 'evaluations':
-                pageTitle.textContent = 'Evaluaciones Físicas';
-                renderEvaluations(dynamicContent);
-                break;
-            case 'attendance':
-                pageTitle.textContent = 'Control de Asistencia';
-                renderAttendance(dynamicContent);
-                break;
-            case 'freetrial':
-                pageTitle.textContent = 'Gestión de Clases de Prueba';
-                renderFreeTrial(dynamicContent);
-                break;
-            default:
-                console.log('Aura: Loading generic module', sectionId);
-                pageTitle.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
-                dynamicContent.innerHTML = `<div class="card p-xl flex flex-col items-center justify-center">
-                    <p class="text-xl mb-md">Módulo ${sectionId} en construcción</p>
-                    <div class="spinner"></div>
-                </div>`;
+        const renderers = {
+            'members': () => { pageTitle.textContent = 'Gestión de Socios'; renderMembers(dynamicContent); },
+            'leads': () => { pageTitle.textContent = 'Pipeline de Leads'; renderLeads(dynamicContent); },
+            'finances': () => { pageTitle.textContent = 'Finanzas y Pagos'; renderFinances(dynamicContent); },
+            'calendar': () => { pageTitle.textContent = 'Calendario de Clases'; renderCalendar(dynamicContent); },
+            'plans': () => { pageTitle.textContent = 'Gestión de Planes'; renderPlans(dynamicContent); },
+            'waitlist': () => { pageTitle.textContent = 'Lista de Espera'; renderWaitlist(dynamicContent); },
+            'evaluations': () => { pageTitle.textContent = 'Evaluaciones Físicas'; renderEvaluations(dynamicContent); },
+            'attendance': () => { pageTitle.textContent = 'Control de Asistencia'; renderAttendance(dynamicContent); },
+            'freetrial': () => { pageTitle.textContent = 'Clases de Prueba'; renderFreeTrial(dynamicContent); }
+        };
+
+        if (renderers[sectionId]) {
+            renderers[sectionId]();
+        } else {
+            pageTitle.textContent = 'Módulo ' + sectionId;
+            dynamicContent.innerHTML = '<div class="glass-card p-xl text-center">Este módulo está siendo habilitado.</div>';
         }
     } catch (err) {
-        console.error('Aura: Error rendering section', sectionId, err);
-        dynamicContent.innerHTML = `
-            <div class="glass-card p-xl text-center">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-                <h3 class="mb-sm">Error al cargar el módulo</h3>
-                <p class="text-muted mb-lg">${err.message}</p>
-                <button class="btn btn-primary" onclick="location.reload()">Recargar Aplicación</button>
-            </div>
-        `;
+        console.error('Aura UI Error:', err);
+        dynamicContent.innerHTML = `<div class="glass-card p-xl text-center text-error">Excepción de renderizado: ${err.message}</div>`;
     }
 }
 
@@ -810,9 +829,9 @@ function updateKPIs() {
     const membersKpi = document.querySelector('.kpi-card:nth-child(2) .kpi-value');
     if (membersKpi) membersKpi.textContent = activeMembers;
 
-    // 3. Ocupación Promedio
-    const totalOccupied = (dashboardData.classes || []).reduce((sum, c) => sum + (Number(c.cupos_ocupados) || 0), 0);
-    const totalMax = (dashboardData.classes || []).reduce((sum, c) => sum + (Number(c.cupos_max) || 10), 0);
+    // 3. Ocupación Promedio (Aura Standardized)
+    const totalOccupied = (dashboardData.classes || []).reduce((sum, c) => sum + (Number(c.occupied_slots) || 0), 0);
+    const totalMax = (dashboardData.classes || []).reduce((sum, c) => sum + (Number(c.max_capacity) || 10), 0);
     const avgOccupancy = totalMax > 0 ? Math.round((totalOccupied / totalMax) * 100) : 0;
     const occKpi = document.querySelector('.kpi-card:nth-child(3) .kpi-value');
     if (occKpi) occKpi.textContent = avgOccupancy + '%';
@@ -1201,14 +1220,28 @@ async function guardarTransaccion(e) {
     const metodo = document.getElementById('fin-metodo').value;
     const fecha = document.getElementById('fin-fecha').value;
 
-    const { error } = await supabase.from('pagos').insert([{
+    const payload = {
         description: desc,
         amount: monto,
-        payment_method: metodo,
         status: 'success',
-        socio_nombre: socio_nombre,
         created_at: fecha + 'T12:00:00Z'
+    };
+
+    // Table Mapping: Try 'pagos' first, then 'transactions'
+    let { error } = await supabase.from('pagos').insert([{
+        ...payload,
+        payment_method: metodo,
+        socio_nombre: socio_nombre
     }]);
+
+    if (error) {
+        console.warn('Aura Resilience: Attempting fallback to "transactions" table...');
+        const { error: error2 } = await supabase.from('transactions').insert([{
+            ...payload,
+            socio_id: null // Standard for manual entries
+        }]);
+        error = error2;
+    }
 
     if (error) {
         showToast('Error al registrar transacción: ' + error.message, 'error');
@@ -1295,19 +1328,38 @@ function renderCalendar(container) {
 async function guardarClase(e) {
     e.preventDefault();
     const diasSel = Array.from(document.getElementById('cl-dias').selectedOptions).map(o => o.value);
-    
-    // As per schema, we save one entry per day or just handle the first one for now
     const dia = diasSel[0] || 'Lunes'; 
 
-    const { error } = await supabase.from('clases').insert([{
+    const payload = {
         name: document.getElementById('cl-nombre').value,
         class_type: document.getElementById('cl-tipo').value,
         instructor: document.getElementById('cl-instructor').value,
         schedule: document.getElementById('cl-horario').value + ':00',
         max_capacity: parseInt(document.getElementById('cl-cupos').value),
-        dia: dia,
+        day: dia,
         occupied_slots: 0
-    }]);
+    };
+
+    console.info('Aura CRM: Intentando guardar clase...', payload);
+    
+    // Attempt 1: English Schema (Harmonized)
+    let { error } = await supabase.from('clases').insert([payload]);
+
+    if (error && error.message.includes('column')) {
+        console.warn('Aura Resilience: Fallo esquema Inglés, reintentando con esquema Español...');
+        // Attempt 2: Spanish Schema (Legacy/Initial)
+        const spanishPayload = {
+            nombre: payload.name,
+            tipo: payload.class_type,
+            instructor: payload.instructor,
+            horario: payload.schedule,
+            dia: dia,
+            cupos_max: payload.max_capacity,
+            cupos_ocupados: 0
+        };
+        const { error: error2 } = await supabase.from('clases').insert([spanishPayload]);
+        error = error2;
+    }
 
     if (error) {
         showToast('Error al crear clase: ' + error.message, 'error');
@@ -1377,11 +1429,34 @@ function renderWaitlist(container) {
 }
 
 async function handleCheckIn(classId, className) {
-    const user = window.getCurrentUser ? window.getCurrentUser() : { role: 'admin' };
+    if (!confirm(`¿Confirmar asistencia rápida para ${className}?`)) return;
+    
+    try {
+        // 1. Record assistance in the master log
+        const { error: assistError } = await supabase.from('asistencias').insert([{
+            clase_id: classId,
+            clase_nombre: className,
+            fecha: new Date().toISOString().split('T')[0],
+            hora: new Date().toLocaleTimeString('it-IT')
+        }]);
 
-    // Check-in logic...
-    if (confirm(`¿Confirmar asistencia para ${className}?`)) {
-        alert(`Check-in realizado para clase de ${className}`);
+        if (assistError) throw assistError;
+
+        // 2. Update occupancy in clases
+        const { data: c } = await supabase.from('clases').select('*').eq('id', classId).single();
+        if (c) {
+            const payload = {};
+            if (c.occupied_slots !== undefined) payload.occupied_slots = (c.occupied_slots || 0) + 1;
+            else if (c.cupos_ocupados !== undefined) payload.cupos_ocupados = (c.cupos_ocupados || 0) + 1;
+            
+            await supabase.from('clases').update(payload).eq('id', classId);
+        }
+
+        showToast(`Asistencia confirmada para ${className} ✅`, 'success');
+        await fetchDashboardData();
+    } catch (err) {
+        console.error('Check-in error:', err);
+        showToast('Error al registrar asistencia', 'error');
     }
 }
 
@@ -2921,12 +2996,7 @@ Object.assign(window, {
     renderFreeTrial,
     renderTrialList,
     verEvaluacion,
-    eliminarEvaluacion,
-    handleCheckIn: (id, name) => {
-        if (confirm(`¿Registrar asistencia para ${name}?`)) {
-            showToast('Asistencia registrada correctamente.');
-        }
-    }
+    eliminarEvaluacion
 });
 
 // ==========================================

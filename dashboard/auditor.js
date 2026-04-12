@@ -79,9 +79,9 @@
                 border-color: #06B6D4;
             }
             .pulse-dot {
-                width: 10px; height: 10px; border-radius: 50%;
-                background: #10B981; box-shadow: 0 0 12px #10B981;
-                animation: nexus-glow 2s infinite;
+                width: 12px; height: 12px; border-radius: 50%;
+                background: #10B981; 
+                /* Animation class from shared-styles.css */
             }
             @keyframes nexus-glow {
                 0% { opacity: 0.4; transform: scale(0.8); }
@@ -147,15 +147,17 @@
 
         if (healthStatus.supabase === 'ERROR' || healthStatus.ui === 'DEGRADED') {
             dot.style.background = '#EF4444';
+            dot.classList.remove('aura-pulse-active');
             dot.style.boxShadow = '0 0 12px #EF4444';
             text.textContent = 'AURA NEXUS: CRITICAL';
         } else if (healthStatus.data === 'SYNCING') {
             dot.style.background = '#F59E0B';
+            dot.classList.remove('aura-pulse-active');
             dot.style.boxShadow = '0 0 12px #F59E0B';
             text.textContent = 'AURA NEXUS: SYNCING';
         } else {
             dot.style.background = '#10B981';
-            dot.style.boxShadow = '0 0 12px #10B981';
+            dot.classList.add('aura-pulse-active');
             text.textContent = 'AURA NEXUS: ACTIVE';
         }
     }
