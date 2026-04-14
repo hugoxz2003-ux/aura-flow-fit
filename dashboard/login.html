@@ -149,20 +149,56 @@
             <h1>Bienvenido, Equipo</h1>
             <p>Ingresa tus credenciales de acceso</p>
 
+            <div id="login-modes" style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+                <button type="button" id="mode-magic" class="btn-sm" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 5px 10px; cursor: pointer;">Magic Link</button>
+                <button type="button" id="mode-pass" class="btn-sm" style="background: rgba(255,255,255,0.05); color: #A1A1AA; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; cursor: pointer;">Contraseña</button>
+            </div>
+
             <form id="loginForm">
                 <div class="form-group">
                     <label>Correo Electrónico</label>
                     <input type="email" id="email" placeholder="ejemplo@auraflow.cl" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="pass-group" style="display: none;">
                     <label>Contraseña</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <input type="password" id="password" placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-login">Iniciar Sesión</button>
-                <div id="errorMsg" class="error-msg">Credenciales incorrectas. Intenta de nuevo.</div>
+                <button type="submit" id="submitBtn" class="btn-login">Enviar Enlace de Acceso</button>
+                <div id="statusMsg" class="error-msg" style="color: var(--primary); background: rgba(6, 182, 212, 0.1);">Enlace enviado. Revisa tu correo.</div>
+                <div id="errorMsg" class="error-msg">Error. Intenta de nuevo.</div>
             </form>
         </div>
     </div>
+
+    <script>
+        const btnMagic = document.getElementById('mode-magic');
+        const btnPass = document.getElementById('mode-pass');
+        const passGroup = document.getElementById('pass-group');
+        const submitBtn = document.getElementById('submitBtn');
+        let currentMode = 'magic';
+
+        btnMagic.onclick = () => {
+            currentMode = 'magic';
+            passGroup.style.display = 'none';
+            btnMagic.style.background = 'var(--primary)';
+            btnMagic.style.color = 'white';
+            btnPass.style.background = 'rgba(255,255,255,0.05)';
+            btnPass.style.color = '#A1A1AA';
+            submitBtn.textContent = 'Enviar Enlace de Acceso';
+            document.getElementById('password').required = false;
+        };
+
+        btnPass.onclick = () => {
+            currentMode = 'pass';
+            passGroup.style.display = 'block';
+            btnPass.style.background = 'var(--primary)';
+            btnPass.style.color = 'white';
+            btnMagic.style.background = 'rgba(255,255,255,0.05)';
+            btnMagic.style.color = '#A1A1AA';
+            submitBtn.textContent = 'Iniciar Sesión';
+            document.getElementById('password').required = true;
+        };
+    </script>
 
     <script src="/scripts/guardian.js?v=2026.04.11.HOTFIX"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

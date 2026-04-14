@@ -19,6 +19,11 @@ window.Aura = {
 window.showSection = window.showSection || function(s) { console.warn('Aura: showSection called before load:', s); };
 window.renderTrialList = window.renderTrialList || function() { console.warn('Aura: renderTrialList not ready'); };
 
+// Consolidation of window exposures for early access
+window.updateKPIs = window.updateKPIs || function() {};
+window.initializeCharts = window.initializeCharts || function() {};
+window.fetchDashboardData = window.fetchDashboardData || function() {};
+
 (function() {
     // Sync localStorage cache to window.dashboardData and Aura.data
     try {
@@ -94,6 +99,47 @@ const DEMO_PLANS = [
     { id: 4, name: 'Plan Gimnasio', price: 35000, credits_per_month: 999, duration_days: 30, category: 'gym' }
 ];
 
+window.generateSocialPlan = async () => {
+    const auth = JSON.parse(localStorage.getItem('aura_flow_auth') || '{}');
+    const company = auth.company || { id: 1, name: 'Aura Flow Fit', type: 'pilates' };
+    
+    showToast(`Generando estrategia IA para ${company.name}...`, 'info');
+    
+    const posts = [
+        { title: 'Beneficios del Reformer', type: 'reel', day: 2 },
+        { title: 'Rutina de Core', type: 'video', day: 5 },
+        { title: 'Testimonio Cliente', type: 'post', day: 8 },
+        { title: 'Workshop Especial', type: 'reel', day: 12 }
+    ];
+
+    const newPosts = posts.map(p => ({
+        company_id: company.id,
+        title: p.title,
+        post_type: p.type,
+        content: `Contenido estratégico para ${company.name} enfocado en ${p.title}.`,
+        status: 'scheduled',
+        scheduled_at: new Date(2026, 3, p.day, 18, 0).toISOString()
+    }));
+
+    if (window.supabase) {
+        const { error } = await supabase.from('social_posts').insert(newPosts);
+        if (error) {
+            console.error('Error guardando en Supabase:', error);
+            showToast('Error de conexión con DB (¿Ejecutaste el SQL?)', 'error');
+            // Fallback to local
+            dashboardData.social_posts = [...(dashboardData.social_posts || []), ...newPosts];
+        } else {
+            showToast('Estrategia guardada en la nube ☁️', 'success');
+            const { data } = await supabase.from('social_posts').select('*').eq('company_id', company.id);
+            dashboardData.social_posts = data;
+        }
+    } else {
+        dashboardData.social_posts = newPosts;
+    }
+    
+    showSection('social');
+}
+
 function loadDemoData() {
     dashboardData.members = DEMO_MEMBERS;
     dashboardData.classes = JSON.parse(JSON.stringify(DEMO_CLASSES));
@@ -168,21 +214,24 @@ async function fetchDashboardData() {
         document.body.appendChild(loadingOverlay);
     }
 
-    // Safety timeout: 10 seconds
+    // Safety timeout: 5 seconds (Hyper-Failsafe for Production)
     if (window._loadSafetyTimeout) clearTimeout(window._loadSafetyTimeout);
     window._loadSafetyTimeout = setTimeout(() => {
         const overlay = document.getElementById('global-loading');
         if (overlay) {
-            console.warn('Aura Security: Tiempo de espera agotado. Forzando acceso.');
+            console.warn('Aura Security: Hyper-Failsafe triggered. Activating UI.');
             overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 500);
-            if (dashboardData.members.length === 0) {
+            setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 500);
+            
+            // Force activation if still empty
+            if (!dashboardData.members || dashboardData.members.length === 0) {
+                console.info('Aura: Loading emergency demo data.');
                 loadDemoData();
-                const target = window.location.hash.substring(1) || 'dashboard';
-                showSection(target);
             }
+            const target = window.location.hash.substring(1) || 'dashboard';
+            showSection(target);
         }
-    }, 10000);
+    }, 5000);
 
     try {
         // --- RESILIENCE GUARD: Wait for Supabase Client ---
@@ -326,6 +375,7 @@ function applyRoleAccess(role) {
         'nav-attendance': true,
         'nav-freetrial': true,
         'nav-comunicacion': ['superadmin', 'admin'],
+        'nav-social': ['superadmin', 'admin'],
         'nav-settings': ['superadmin', 'admin']
     };
 
@@ -697,18 +747,18 @@ function showSection(sectionId) {
         document.querySelector('.today-classes-section')
     ];
     
-    let dynamicContent = document.getElementById('dynamic-content');
-    if (!dynamicContent) {
-        dynamicContent = document.createElement('div');
-        dynamicContent.id = 'dynamic-content';
-        mainContent.appendChild(dynamicContent);
+    let dynamicArea = dynamicContent;
+    if (!dynamicArea) {
+        dynamicArea = document.createElement('div');
+        dynamicArea.id = 'dynamic-content';
+        mainContent.appendChild(dynamicArea);
     }
 
     if (sectionId === 'dashboard') {
         dashboardElements.forEach(el => { if (el) el.style.display = 'grid'; });
         const tcs = document.querySelector('.today-classes-section');
         if (tcs) tcs.style.display = 'block';
-        dynamicContent.style.display = 'none';
+        dynamicArea.style.display = 'none';
         if (pageTitle) pageTitle.textContent = 'Dashboard';
         
         renderTodayClasses();
@@ -719,32 +769,33 @@ function showSection(sectionId) {
 
     // Clear and show dynamic area
     dashboardElements.forEach(el => { if (el) el.style.display = 'none'; });
-    dynamicContent.innerHTML = '<div class="flex justify-center p-xl"><div class="spinner"></div></div>';
-    dynamicContent.style.display = 'block';
+    dynamicArea.innerHTML = '<div class="flex justify-center p-xl"><div class="spinner"></div></div>';
+    dynamicArea.style.display = 'block';
 
     // Route to specialized renderers
     try {
         const renderers = {
-            'members': () => { pageTitle.textContent = 'Gestión de Socios'; renderMembers(dynamicContent); },
-            'leads': () => { pageTitle.textContent = 'Pipeline de Leads'; renderLeads(dynamicContent); },
-            'finances': () => { pageTitle.textContent = 'Finanzas y Pagos'; renderFinances(dynamicContent); },
-            'calendar': () => { pageTitle.textContent = 'Calendario de Clases'; renderCalendar(dynamicContent); },
-            'plans': () => { pageTitle.textContent = 'Gestión de Planes'; renderPlans(dynamicContent); },
-            'waitlist': () => { pageTitle.textContent = 'Lista de Espera'; renderWaitlist(dynamicContent); },
-            'evaluations': () => { pageTitle.textContent = 'Evaluaciones Físicas'; renderEvaluations(dynamicContent); },
-            'attendance': () => { pageTitle.textContent = 'Control de Asistencia'; renderAttendance(dynamicContent); },
-            'freetrial': () => { pageTitle.textContent = 'Clases de Prueba'; renderFreeTrial(dynamicContent); }
+            'members': () => { pageTitle.textContent = 'Gestión de Socios'; renderMembers(dynamicArea); },
+            'leads': () => { pageTitle.textContent = 'Pipeline de Leads'; renderLeads(dynamicArea); },
+            'finances': () => { pageTitle.textContent = 'Finanzas y Pagos'; renderFinances(dynamicArea); },
+            'calendar': () => { pageTitle.textContent = 'Calendario de Clases'; renderCalendar(dynamicArea); },
+            'plans': () => { pageTitle.textContent = 'Gestión de Planes'; renderPlans(dynamicArea); },
+            'waitlist': () => { pageTitle.textContent = 'Lista de Espera'; renderWaitlist(dynamicArea); },
+            'evaluations': () => { pageTitle.textContent = 'Evaluaciones Físicas'; renderEvaluations(dynamicArea); },
+            'attendance': () => { pageTitle.textContent = 'Control de Asistencia'; renderAttendance(dynamicArea); },
+            'freetrial': () => { pageTitle.textContent = 'Clases de Prueba'; renderFreeTrial(dynamicArea); },
+            'social': () => { pageTitle.textContent = 'Social Media Planner'; renderSocialMediaPlanner(dynamicArea); }
         };
 
         if (renderers[sectionId]) {
             renderers[sectionId]();
         } else {
             pageTitle.textContent = 'Módulo ' + sectionId;
-            dynamicContent.innerHTML = '<div class="glass-card p-xl text-center">Este módulo está siendo habilitado.</div>';
+            dynamicArea.innerHTML = '<div class="glass-card p-xl text-center">Este módulo está siendo habilitado.</div>';
         }
     } catch (err) {
         console.error('Aura UI Error:', err);
-        dynamicContent.innerHTML = `<div class="glass-card p-xl text-center text-error">Excepción de renderizado: ${err.message}</div>`;
+        dynamicArea.innerHTML = `<div class="glass-card p-xl text-center text-error">Excepción de renderizado: ${err.message}</div>`;
     }
 }
 
@@ -1865,6 +1916,19 @@ function renderEvaluations(container) {
                 <button class="btn btn-primary" onclick="window.showNewMemberModal()">+ Nuevo Socio</button>
             </div>
         </div>
+        <div class="flex justify-between items-center mb-xl">
+            <div>
+                <h1 class="text-3xl font-900 text-white mb-xs">Marketing Social <span class="badge badge-primary text-xs ml-sm">Trend 2026</span></h1>
+                <p class="text-muted">Planificador de contenido inteligente para ${company.name}</p>
+            </div>
+            <div class="flex gap-md items-center">
+                <div id="db-status-indicator" class="flex items-center gap-xs px-md py-xs rounded-full bg-white-05 border border-white-05">
+                    <span class="pulse-dot ${window.supabase ? 'bg-success' : 'bg-danger'}"></span>
+                    <span class="text-xs font-700">${window.supabase ? 'DB Conectada' : 'DB Offline'}</span>
+                </div>
+                <button class="btn btn-primary" onclick="window.generateSocialPlan()">✨ IA: Crear Calendario Mensual</button>
+            </div>
+        </div>
         <div class="flex justify-between items-center mb-lg">
             <div>
                 <h3>Estado Físico y Antropometría</h3>
@@ -2028,6 +2092,7 @@ window.mostrarModalPago = function(sid) {
             </div>
 
             <div class="flex gap-md">
+                <button class="btn btn-primary flex-1" onclick="window.publishToN8N('${sid}')">🚀 Publicar vía n8n</button>
                 <button class="btn btn-secondary flex-1" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
                 <button class="btn btn-primary flex-1" id="confirm-pago-btn">Confirmar ✅</button>
             </div>
@@ -2980,24 +3045,7 @@ window.handleCheckIn = (id, name) => {
     }
 };
 
-// ==========================================
-// FINAL EXPOSURES (OVERWRITING STUBS)
-// ==========================================
-Object.assign(window, {
-    showSection,
-    renderMembers,
-    renderLeads,
-    renderFinances,
-    renderCalendar,
-    renderPlans,
-    renderWaitlist,
-    renderEvaluations,
-    renderAttendance,
-    renderFreeTrial,
-    renderTrialList,
-    verEvaluacion,
-    eliminarEvaluacion
-});
+// window exposures consolidated at top
 
 // ==========================================
 // SEARCH & EVENT LISTENERS

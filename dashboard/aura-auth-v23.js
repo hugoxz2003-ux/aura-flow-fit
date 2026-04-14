@@ -1,10 +1,9 @@
 // Auth Logic for Aura Flow Fit CRM - v2.3 (Ultra-Fortress HOTFIX)
 const AUTH_KEY = 'aura_flow_auth';
 const USERS = [
-    { email: 'superadmin@auraflow.cl', pass: 'aura2026super', role: 'superadmin', name: 'Hugo Boss' },
-    { email: 'admin@auraflow.cl', pass: 'aura2026admin', role: 'admin', name: 'Admin Aura' },
-    { email: 'staff@auraflow.cl', pass: 'aura2026staff', role: 'staff', name: 'Staff Equipo' },
-    { email: 'coach@auraflow.cl', pass: 'aura2026coach', role: 'instructor', name: 'Instructora Aura' }
+    { email: 'superadmin@auraflow.cl', pass: 'aura2026super', role: 'superadmin', name: 'Hugo Boss', company_id: 1, company_name: 'Aura Flow Fit', company_type: 'pilates', company_handle: '@auraflowfit' },
+    { email: 'contacto@starfit.cl', pass: 'star2026', role: 'admin', name: 'Admin Starfit', company_id: 2, company_name: 'Starfit Chile', company_type: 'gym', company_handle: '@starfit_chile' },
+    { email: 'ventas@auraflow.cl', pass: 'aura2026', role: 'admin', name: 'Admin Aura', company_id: 1, company_name: 'Aura Flow Fit', company_type: 'pilates', company_handle: '@auraflowfit' }
 ];
 
 const REDIRECT_COUNT_KEY = 'aura_redirect_count';
@@ -57,20 +56,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
+    const pass = document.getElementById('password')?.value;
     const errorMsg = document.getElementById('errorMsg');
-    const user = USERS.find(u => u.email === email && u.pass === pass);
+    const statusMsg = document.getElementById('statusMsg');
+    const isMagic = document.getElementById('pass-group').style.display === 'none';
 
-    if (user) {
-        const session = { authenticated: true, user: { email: user.email, role: user.role, name: user.name }, timestamp: Date.now() };
-        localStorage.setItem(AUTH_KEY, JSON.stringify(session));
-        localStorage.removeItem(REDIRECT_COUNT_KEY);
-        safeRedirect('/dashboard');
-    } else {
-        if (errorMsg) errorMsg.style.display = 'block';
+    try {
+        if (isMagic) {
+            // Flow 1: Magic Link via Supabase
+            if (window.auraClient) {
+                const { error } = await window.auraClient.auth.signInWithOtp({
+                    email: email,
+                    options: { emailRedirectTo: window.location.origin + '/dashboard' }
+                });
+                if (error) throw error;
+                if (statusMsg) statusMsg.style.display = 'block';
+            } else {
+                throw new Error('Supabase no inicializado');
+            }
+        } else {
+            // Flow 2: Password (Legacy or Supabase Auth)
+            const user = USERS.find(u => u.email === email && u.pass === pass);
+            if (user) {
+                const session = { 
+                    authenticated: true, 
+                    user: { 
+                        email: user.email, 
+                        role: user.role, 
+                        name: user.name 
+                    }, 
+                    company: {
+                        id: user.company_id,
+                        name: user.company_name,
+                        type: user.company_type,
+                        handle: user.company_handle
+                    },
+                    timestamp: Date.now() 
+                };
+                localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+                localStorage.removeItem(REDIRECT_COUNT_KEY);
+                safeRedirect('/dashboard');
+            } else {
+                if (errorMsg) errorMsg.style.display = 'block';
+            }
+        }
+    } catch (err) {
+        console.error('Login Error:', err.message);
+        if (errorMsg) {
+            errorMsg.textContent = `Error: ${err.message}`;
+            errorMsg.style.display = 'block';
+        }
     }
 }
 
