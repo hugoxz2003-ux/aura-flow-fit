@@ -117,9 +117,10 @@ function renderCalendar() {
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
                     ${dayPosts.length > 0 ? dayPosts.map(p => `
-                        <div class="badge badge-info" style="font-size: 9px; cursor:pointer; padding: 4px 8px; background: rgba(6,182,212,0.1); color: #06B6D4; border-radius: 4px;" onclick="viewPost('${p.id}')">
+                        <div class="badge badge-info" style="font-size: 9px; cursor:pointer; padding: 4px 8px; background: rgba(6,182,212,0.1); color: #06B6D4; border-radius: 4px; margin-bottom: 2px;" onclick="viewPost('${p.id}')">
                             [${p.content_type}] ${p.title}
                         </div>
+                        <button onclick="publishPost('${p.id}')" style="font-size: 8px; background: transparent; color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; padding: 2px 4px; cursor: pointer; width: fit-content;">📤 Publicar</button>
                     `).join('') : '<p style="font-size: 0.6rem; color: rgba(255,255,255,0.2);">Sin programar</p>'}
                 </div>
             </div>
@@ -154,6 +155,43 @@ window.generateAISuggestions = async function() {
         console.error('Error inserting post:', error);
         alert('Error al guardar en base de datos. Asegúrate de haber corrido SOCIAL_CRM_SETUP.sql');
     }
+};
+
+window.publishPost = async function(postId) {
+    const post = dashboardData.socialPosts.find(p => p.id === postId);
+    if(!post) return;
+
+    if(!confirm(`¿Deseas enviar "${post.title}" a n8n para publicación inmediata en Meta?`)) return;
+
+    // Call n8n Webhook
+    // Note: User needs to provide the real N8N_WEBHOOK_URL in dashboard.js or ENV
+    const N8N_WEBHOOK = "https://n8n.auraflow.fit/webhook/publish-social"; 
+    
+    try {
+        const res = await fetch(N8N_WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                company_id: dashboardData.company.id,
+                company_handle: dashboardData.company.handle,
+                post: post
+            })
+        });
+
+        if(res.ok) {
+            alert('¡Enviado a n8n con éxito! Revisa el flujo de automatización.');
+        } else {
+            alert('Error al conectar con n8n. Verifica el Webhook URL en dashboard.js');
+        }
+    } catch (err) {
+        console.error('N8N Error:', err);
+        alert('Error de conexión con n8n. ¿URL configurada?');
+    }
+};
+
+window.viewPost = function(id) {
+    const post = dashboardData.socialPosts.find(p => p.id === id);
+    if(post) alert(`Detalle del Post:\n\n${post.title}\n${post.caption || 'Sin descripción'}`);
 };
 
 window.showSection = function(section) {
